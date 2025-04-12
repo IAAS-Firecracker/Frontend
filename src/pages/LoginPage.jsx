@@ -13,15 +13,9 @@ const LoginPage = () => {
           alignItems: 'center',
         }}
       >
-        <Typography component="h1" variant="h4">
-          Sign in to your account
-        </Typography>
+        
         <LoginForm />
-        <Box sx={{ mt: 2 }}>
-          <Link href="/signup" variant="body2">
-            Don't have an account? Sign Up
-          </Link>
-        </Box>
+       
       </Box>
     </Container>
   );

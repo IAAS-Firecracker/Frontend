@@ -11,7 +11,6 @@ import {
   ListItem,
   ListItemIcon,
   ListItemText,
-  Divider,
   useMediaQuery,
   useTheme,
   Stack,
@@ -27,8 +26,6 @@ import {
   SupportAgent,
   CheckCircle,
   Public,
-  Terminal,
-  Dns,
   VpnLock,
   ArrowForward,
   RocketLaunch,
@@ -41,30 +38,54 @@ import Features from '../components/home/Features';
 import PricingPlans from '../components/home/PricingPlans';
 import Testimonials from '../components/home/Testimonials';
 
-
-// Animation for floating elements
+// Animation keyframes
 const floatAnimation = keyframes`
   0% { transform: translateY(0px); }
   50% { transform: translateY(-10px); }
   100% { transform: translateY(0px); }
 `;
 
+const pulseAnimation = keyframes`
+  0% { transform: scale(1); opacity: 1; }
+  50% { transform: scale(1.05); opacity: 0.9; }
+  100% { transform: scale(1); opacity: 1; }
+`;
+
+const shimmerAnimation = keyframes`
+  0% { background-position: -1000px 0; }
+  100% { background-position: 1000px 0; }
+`;
+
 const HomePage = () => {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('md'));
+  const isTablet = useMediaQuery(theme.breakpoints.down('lg'));
+
+  // Trust badge items with consistent structure
+  const trustBadges = [
+    { text: '99.99% Uptime', icon: <BarChart color="primary" /> },
+    { text: '24/7 Support', icon: <SupportAgent color="primary" /> },
+    { text: 'Global Network', icon: <Public color="primary" /> },
+    { text: 'Cost Efficient', icon: <Savings color="primary" /> }
+  ];
 
   return (
-   
-    <Box sx={{ overflowX: 'hidden', overflowY: 'hidden' }}>
+    <Box sx={{ 
+      overflowX: 'hidden',
+      bgcolor: theme.palette.background.default,
+    }}>
         
-      {/* Hero Section with animated background */}
+      {/* Hero Section - Modern gradient with improved visual elements */}
       <Box sx={{
-        background: 'linear-gradient(135deg, #0d47a1 0%, #1976d2 100%)',
+        background: `linear-gradient(135deg, ${theme.palette.primary.dark} 0%, ${theme.palette.primary.main} 70%, ${theme.palette.primary.light} 100%)`,
         color: 'white',
-        py: 10,
+        pt: { xs: 8, md: 12 },
+        pb: { xs: 10, md: 14 },
         textAlign: 'center',
         position: 'relative',
         overflow: 'hidden',
+        borderRadius: { md: '0 0 30px 30px' },
+        boxShadow: '0 4px 20px rgba(0,0,0,0.1)',
         '&::before': {
           content: '""',
           position: 'absolute',
@@ -73,8 +94,8 @@ const HomePage = () => {
           right: 0,
           bottom: 0,
           backgroundImage: `
-            radial-gradient(circle at 20% 30%, rgba(255,255,255,0.1) 0%, transparent 20%),
-            radial-gradient(circle at 80% 70%, rgba(255,255,255,0.1) 0%, transparent 20%)
+            radial-gradient(circle at 20% 30%, rgba(255,255,255,0.15) 0%, transparent 25%),
+            radial-gradient(circle at 80% 70%, rgba(255,255,255,0.15) 0%, transparent 25%)
           `,
           pointerEvents: 'none',
         }
@@ -84,33 +105,56 @@ const HomePage = () => {
             <Box>
               <Typography 
                 variant={isMobile ? 'h3' : 'h2'} 
+                component="h1"
                 gutterBottom 
                 sx={{ 
                   fontWeight: 800,
                   mb: 3,
-                  textShadow: '0 2px 4px rgba(0,0,0,0.2)',
-                  lineHeight: 1.2
+                  textShadow: '0 2px 10px rgba(0,0,0,0.2)',
+                  lineHeight: 1.2,
+                  letterSpacing: -0.5,
                 }}
               >
-                Cloud Hosting <Box component="span" sx={{ color: theme.palette.secondary.light }}>Reimagined</Box>
+                Cloud Hosting{' '}
+                <Box 
+                  component="span" 
+                  sx={{ 
+                    color: theme.palette.secondary.light,
+                    position: 'relative',
+                    '&::after': {
+                      content: '""',
+                      position: 'absolute',
+                      bottom: -5,
+                      left: 0,
+                      width: '100%',
+                      height: 3,
+                      backgroundColor: theme.palette.secondary.light,
+                      borderRadius: 2,
+                    }
+                  }}
+                >
+                  Reimagined
+                </Box>
               </Typography>
               <Typography 
-                variant={isMobile ? 'h6' : 'h5'} 
+                variant={isMobile ? 'body1' : 'h6'} 
+                component="h2"
                 gutterBottom 
                 sx={{ 
                   mb: 4,
-                  maxWidth: 800,
+                  maxWidth: 700,
                   mx: 'auto',
                   opacity: 0.9,
-                  fontWeight: 300
+                  fontWeight: 300,
+                  lineHeight: 1.6
                 }}
               >
                 Enterprise-grade infrastructure at startup-friendly prices. 
-                Deploy in seconds, scale effortlessly.
+                Deploy in seconds, scale without limits.
               </Typography>
               <Stack 
                 direction={{ xs: 'column', sm: 'row' }} 
-                spacing={2} 
+                spacing={3} 
                 justifyContent="center"
                 sx={{ mb: 6 }}
               >
@@ -123,9 +167,15 @@ const HomePage = () => {
                   sx={{ 
                     px: 4,
                     py: 1.5,
-                    borderRadius: 2,
+                    borderRadius: 3,
                     fontWeight: 600,
-                    fontSize: isMobile ? '1rem' : '1.125rem'
+                    fontSize: isMobile ? '1rem' : '1.125rem',
+                    boxShadow: '0 4px 14px rgba(0,0,0,0.2)',
+                    transition: 'all 0.3s ease',
+                    '&:hover': {
+                      transform: 'translateY(-3px)',
+                      boxShadow: '0 6px 20px rgba(0,0,0,0.25)',
+                    }
                   }}
                 >
                   Launch Your First VM
@@ -139,9 +189,15 @@ const HomePage = () => {
                   sx={{ 
                     px: 4,
                     py: 1.5,
-                    borderRadius: 2,
+                    borderRadius: 3,
                     fontWeight: 600,
-                    fontSize: isMobile ? '1rem' : '1.125rem'
+                    fontSize: isMobile ? '1rem' : '1.125rem',
+                    borderWidth: 2,
+                    transition: 'all 0.3s ease',
+                    '&:hover': {
+                      borderWidth: 2,
+                      bgcolor: 'rgba(255,255,255,0.1)',
+                    }
                   }}
                 >
                   Compare Plans
@@ -150,53 +206,98 @@ const HomePage = () => {
             </Box>
           </Fade>
 
-          {/* Animated floating server illustration */}
+          {/* Animated server illustration with enhanced visuals */}
           <Box sx={{
             position: 'relative',
-            height: isMobile ? 200 : 300,
+            height: isMobile ? 180 : 260,
             mx: 'auto',
             maxWidth: 800,
             animation: `${floatAnimation} 6s ease-in-out infinite`
           }}>
-            <Box component="img" 
+            <Box 
+              component="img" 
               src="https://cdn-icons-png.flaticon.com/512/2906/2906274.png" 
               alt="Cloud servers"
               sx={{ 
                 height: '100%', 
                 width: 'auto',
-                filter: 'drop-shadow(0 10px 20px rgba(0,0,0,0.3))'
+                filter: 'drop-shadow(0 15px 30px rgba(0,0,0,0.4))',
+                transition: 'all 0.3s ease',
               }}
             />
+            
+            {/* Decorative elements */}
+            <Box sx={{
+              position: 'absolute',
+              top: '30%',
+              left: isMobile ? '20%' : '30%',
+              width: 40,
+              height: 40,
+              borderRadius: '50%',
+              bgcolor: 'rgba(255,255,255,0.2)',
+              animation: `${pulseAnimation} 3s infinite ease-in-out`,
+              zIndex: -1,
+            }} />
+            <Box sx={{
+              position: 'absolute',
+              bottom: '20%',
+              right: isMobile ? '20%' : '35%',
+              width: 25,
+              height: 25,
+              borderRadius: '50%',
+              bgcolor: 'rgba(255,255,255,0.15)',
+              animation: `${pulseAnimation} 4s infinite ease-in-out`,
+              animationDelay: '1s',
+              zIndex: -1,
+            }} />
           </Box>
         </Container>
       </Box>
 
-      {/* Trust Badges */}
+      {/* Trust Badges - Redesigned for better visual impact */}
       <Box sx={{ 
-        py: 4,
-        bgcolor: 'background.paper',
-        borderBottom: `1px solid ${theme.palette.divider}`
+        py: { xs: 4, md: 5 },
+        mt: { xs: -6, md: -8 },
+        mx: { xs: 2, sm: 4, md: 6, lg: 10 },
+        bgcolor: theme.palette.background.paper,
+        borderRadius: 4,
+        boxShadow: '0 10px 40px rgba(0,0,0,0.08)',
+        position: 'relative',
+        zIndex: 2,
+        border: `1px solid ${theme.palette.divider}`,
       }}>
         <Container maxWidth="lg">
           <Grid container alignItems="center" justifyContent="space-around" spacing={4}>
-            {[
-              { text: '99.9% Uptime', icon: <BarChart color="primary" /> },
-              { text: '24/7 Support', icon: <SupportAgent color="primary" /> },
-              { text: 'Global Network', icon: <Public color="primary" /> },
-              { text: 'Cost Efficient', icon: <Savings color="primary" /> }
-            ].map((item, index) => (
+            {trustBadges.map((item, index) => (
               <Grow in timeout={800 + (index * 200)} key={index}>
                 <Grid item xs={6} sm={3}>
-                  <Stack direction="row" alignItems="center" spacing={2} justifyContent="center">
+                  <Stack 
+                    direction="row" 
+                    alignItems="center" 
+                    spacing={1.5} 
+                    justifyContent="center"
+                    sx={{
+                      transition: 'all 0.3s ease',
+                      '&:hover': {
+                        transform: 'translateY(-3px)',
+                      }
+                    }}
+                  >
                     <Avatar sx={{ 
-                      bgcolor: theme.palette.primary.light,
+                      bgcolor: `${theme.palette.primary.light}20`,
                       color: theme.palette.primary.main,
-                      width: 40,
-                      height: 40
+                      width: 44,
+                      height: 44
                     }}>
                       {item.icon}
                     </Avatar>
-                    <Typography variant="h6" fontWeight={600}>
+                    <Typography 
+                      variant="subtitle1" 
+                      fontWeight={600}
+                      sx={{
+                        fontSize: { xs: '0.875rem', md: '1rem' },
+                      }}
+                    >
                       {item.text}
                     </Typography>
                   </Stack>
@@ -207,287 +308,39 @@ const HomePage = () => {
         </Container>
       </Box>
 
-      {/* Features Section */}
-      {/* <Box sx={{ py: 10, bgcolor: 'background.default' }}>
-        <Container maxWidth="lg">
-          <Box textAlign="center" sx={{ mb: 8 }}>
-            <Typography 
-              variant="overline" 
-              color="primary"
-              sx={{ 
-                fontWeight: 600,
-                letterSpacing: 1,
-                fontSize: '1rem'
-              }}
-            >
-              WHY CHOOSE US
-            </Typography>
-            <Typography 
-              variant="h3" 
-              sx={{ 
-                fontWeight: 800,
-                mt: 1
-              }}
-            >
-              Built for Developers & Businesses
-            </Typography>
-          </Box>
-          
-          <Grid container spacing={6}>
-            {[
-              {
-                icon: <Speed fontSize="large" color="primary" />,
-                title: "Lightning Fast",
-                description: "Our NVMe SSD storage and high-frequency CPUs deliver exceptional performance for your applications.",
-                highlights: [
-                  "3x faster than standard SSDs",
-                  "Low-latency networking",
-                  "Dedicated resources"
-                ]
-              },
-              {
-                icon: <Security fontSize="large" color="primary" />,
-                title: "Secure by Design",
-                description: "Multiple layers of security including DDoS protection, firewalls, and isolated networks.",
-                highlights: [
-                  "Free DDoS protection",
-                  "Two-factor authentication",
-                  "Regular security audits"
-                ]
-              },
-              {
-                icon: <DashboardCustomize fontSize="large" color="primary" />,
-                title: "Easy to Use",
-                description: "Intuitive control panel and API make managing your infrastructure simple.",
-                highlights: [
-                  "One-click apps",
-                  "Custom dashboard",
-                  "Mobile friendly"
-                ]
-              }
-            ].map((feature, index) => (
-              <Grow in timeout={500 + (index * 300)} key={index}>
-                <Grid item xs={12} md={4}>
-                  <Paper elevation={0} sx={{ 
-                    p: 4, 
-                    height: '100%',
-                    borderRadius: 3,
-                    border: `1px solid ${theme.palette.divider}`,
-                    transition: 'all 0.3s ease',
-                    '&:hover': {
-                      transform: 'translateY(-8px)',
-                      boxShadow: theme.shadows[6]
-                    }
-                  }}>
-                    <Avatar sx={{ 
-                      bgcolor: theme.palette.primary.light,
-                      color: theme.palette.primary.main,
-                      width: 60,
-                      height: 60,
-                      mb: 3
-                    }}>
-                      {feature.icon}
-                    </Avatar>
-                    <Typography variant="h5" sx={{ mb: 2, fontWeight: 700 }}>
-                      {feature.title}
-                    </Typography>
-                    <Typography variant="body1" color="text.secondary" sx={{ mb: 3 }}>
-                      {feature.description}
-                    </Typography>
-                    <List dense>
-                      {feature.highlights.map((highlight, i) => (
-                        <ListItem key={i} sx={{ px: 0 }}>
-                          <ListItemIcon sx={{ minWidth: 32 }}>
-                            <CheckCircle color="primary" fontSize="small" />
-                          </ListItemIcon>
-                          <ListItemText primary={highlight} />
-                        </ListItem>
-                      ))}
-                    </List>
-                  </Paper>
-                </Grid>
-              </Grow>
-            ))}
-          </Grid>
-        </Container>
-      </Box> */}
-      <Features/>
+      {/* Features Section - Using the existing component */}
+      <Box sx={{ py: { xs: 8, md: 12 } }}>
+        <Features />
+      </Box>
 
-
-      {/* Pricing Plans Section */}
-      <PricingPlans/>
-
-      {/* Global Infrastructure Section */}
-      {/* <Box sx={{ 
-        py: 10,
-        background: `linear-gradient(rgba(0, 0, 0, 0.7), url(https://images.unsplash.com/photo-1451187580459-43490279c0fa?ixlib=rb-1.2.1&auto=format&fit=crop&w=1350&q=80)`,
-        backgroundSize: 'cover',
-        backgroundPosition: 'center',
-        color: 'white',
-        position: 'relative'
-      }}>
-        <Container maxWidth="lg">
-          <Grid container spacing={6} alignItems="center">
-            <Grid item xs={12} md={6}>
-              <Typography variant="overline" sx={{ 
-                fontWeight: 600,
-                letterSpacing: 1,
-                fontSize: '1rem',
-                color: theme.palette.secondary.light
-              }}>
-                GLOBAL REACH
-              </Typography>
-              <Typography variant="h3" sx={{ 
-                fontWeight: 800,
-                mb: 3,
-                mt: 1
-              }}>
-                Worldwide Data Centers
-              </Typography>
-              <Typography variant="body1" sx={{ 
-                mb: 4,
-                opacity: 0.9,
-                fontSize: '1.1rem'
-              }}>
-                Our strategically located data centers ensure low latency and high availability 
-                for your applications, no matter where your users are.
-              </Typography>
-              
-              <List>
-                {[
-                  { location: "North America", cities: "New York, Los Angeles, Dallas" },
-                  { location: "Europe", cities: "Frankfurt, London, Paris" },
-                  { location: "Asia", cities: "Singapore, Tokyo, Mumbai" },
-                  { location: "Oceania", cities: "Sydney, Melbourne" }
-                ].map((item, index) => (
-                  <ListItem key={index} sx={{ px: 0 }}>
-                    <ListItemIcon sx={{ minWidth: 40, color: theme.palette.secondary.light }}>
-                      <Public />
-                    </ListItemIcon>
-                    <ListItemText 
-                      primary={item.location}
-                      secondary={item.cities}
-                      primaryTypographyProps={{ fontWeight: 600 }}
-                      secondaryTypographyProps={{ color: 'rgba(255,255,255,0.7)' }}
-                    />
-                  </ListItem>
-                ))}
-              </List>
-            </Grid>
-            <Grid item xs={12} md={6}>
-              <Zoom in timeout={1000}>
-                <Box sx={{ 
-                  borderRadius: 3,
-                  overflow: 'hidden',
-                  boxShadow: 6,
-                  lineHeight: 0,
-                  position: 'relative'
-                }}>
-                  <Box component="img" 
-                    src="https://maps.googleapis.com/maps/api/staticmap?center=0,0&zoom=1&scale=2&size=800x600&maptype=roadmap&markers=color:red%7C40.7128,-74.0060&markers=color:red%7C34.0522,-118.2437&markers=color:red%7C32.7767,-96.7970&markers=color:red%7C50.1109,8.6821&markers=color:red%7C51.5074,-0.1278&markers=color:red%7C48.8566,2.3522&markers=color:red%7C1.3521,103.8198&markers=color:red%7C35.6762,139.6503&markers=color:red%7C19.0760,72.8777&markers=color:red%7C-33.8688,151.2093&markers=color:red%7C-37.8136,144.9631&key=YOUR_API_KEY" 
-                    alt="Data center locations"
-                    sx={{ width: '100%', height: 'auto' }}
-                  />
-                  <Box sx={{
-                    position: 'absolute',
-                    bottom: 0,
-                    left: 0,
-                    right: 0,
-                    background: 'linear-gradient(transparent, rgba(0,0,0,0.7))',
-                    p: 3,
-                    color: 'white'
-                  }}>
-                    <Typography variant="body2">
-                      <Box component="span" sx={{ 
-                        display: 'inline-block',
-                        width: 10,
-                        height: 10,
-                        bgcolor: 'red',
-                        borderRadius: '50%',
-                        mr: 1
-                      }} />
-                      Data Center Locations
-                    </Typography>
-                  </Box>
-                </Box>
-              </Zoom>
-            </Grid>
-          </Grid>
-        </Container>
-      </Box> */}
-      {/* Testimonials Section */}
-        <Testimonials/>
-
-      {/* CTA Section */}
+      {/* Pricing Plans Section - Using the existing component */}
       <Box sx={{ 
-        py: 10,
+        py: { xs: 8, md: 12 },
+        bgcolor: theme.palette.background.default,
+      }}>
+        <PricingPlans />
+      </Box>
+
+      {/* Testimonials Section - Using the existing component */}
+      <Box sx={{ 
+        py: { xs: 8, md: 12 },
+        bgcolor: theme.palette.grey[50],
+        borderRadius: { md: '30px 30px 0 0' },
+        mt: { md: 4 },
+      }}>
+        <Testimonials />
+      </Box>
+
+      {/* CTA Section - Enhanced with modern design elements */}
+      <Box sx={{ 
+        py: { xs: 8, md: 10 },
         background: `linear-gradient(135deg, ${theme.palette.primary.dark} 0%, ${theme.palette.primary.main} 100%)`,
         color: 'white',
         textAlign: 'center',
         position: 'relative',
-        overflow: 'hidden'
+        overflow: 'hidden',
       }}>
-        <Container maxWidth="md">
-          <Typography 
-            variant="h3" 
-            sx={{ 
-              fontWeight: 800,
-              mb: 3
-            }}
-          >
-            Ready to Deploy Your Project?
-          </Typography>
-          <Typography 
-            variant="h6" 
-            sx={{ 
-              mb: 4,
-              opacity: 0.9,
-              fontWeight: 300
-            }}
-          >
-            Get started in minutes with our easy-to-use platform. No long-term contracts, cancel anytime.
-          </Typography>
-          <Stack 
-            direction={{ xs: 'column', sm: 'row' }} 
-            spacing={2} 
-            justifyContent="center"
-          >
-            <Button 
-              variant="contained" 
-              color="secondary" 
-              size="large"
-              href="/signup"
-              endIcon={<RocketLaunch />}
-              sx={{ 
-                px: 6,
-                py: 1.5,
-                borderRadius: 2,
-                fontWeight: 600,
-                fontSize: '1.125rem'
-              }}
-            >
-              Get Started Free
-            </Button>
-            <Button 
-              variant="outlined" 
-              color="inherit" 
-              size="large"
-              href="/contact"
-              endIcon={<ArrowForward />}
-              sx={{ 
-                px: 6,
-                py: 1.5,
-                borderRadius: 2,
-                fontWeight: 600,
-                fontSize: '1.125rem'
-              }}
-            >
-              Contact Sales
-            </Button>
-          </Stack>
-        </Container>
-        
-        {/* Animated decorative elements */}
+        {/* Animated background effect */}
         <Box sx={{
           position: 'absolute',
           top: 0,
@@ -495,11 +348,157 @@ const HomePage = () => {
           right: 0,
           bottom: 0,
           backgroundImage: `
-            radial-gradient(circle at 20% 30%, rgba(255,255,255,0.1) 0%, transparent 20%),
-            radial-gradient(circle at 80% 70%, rgba(255,255,255,0.1) 0%, transparent 20%)
+            radial-gradient(circle at 20% 30%, rgba(255,255,255,0.15) 0%, transparent 25%),
+            radial-gradient(circle at 80% 70%, rgba(255,255,255,0.15) 0%, transparent 25%)
           `,
           pointerEvents: 'none',
         }} />
+        
+        {/* Decorative elements */}
+        <Box sx={{
+          position: 'absolute',
+          top: '20%',
+          left: '10%',
+          width: 60,
+          height: 60,
+          borderRadius: '50%',
+          bgcolor: 'rgba(255,255,255,0.1)',
+          animation: `${pulseAnimation} 4s infinite ease-in-out`,
+        }} />
+        <Box sx={{
+          position: 'absolute',
+          bottom: '15%',
+          right: '10%',
+          width: 80,
+          height: 80,
+          borderRadius: '50%',
+          bgcolor: 'rgba(255,255,255,0.08)',
+          animation: `${pulseAnimation} 5s infinite ease-in-out`,
+          animationDelay: '1s',
+        }} />
+        
+        <Container maxWidth="md">
+          <Fade in timeout={1000}>
+            <Box>
+              <Typography 
+                variant={isMobile ? 'h4' : 'h3'} 
+                component="h2"
+                sx={{ 
+                  fontWeight: 800,
+                  mb: 3,
+                  textShadow: '0 2px 10px rgba(0,0,0,0.2)',
+                  position: 'relative',
+                  display: 'inline-block'
+                }}
+              >
+                Ready to Deploy Your Project?
+              </Typography>
+              <Typography 
+                variant={isMobile ? 'body1' : 'h6'} 
+                sx={{ 
+                  mb: 5,
+                  opacity: 0.9,
+                  fontWeight: 300,
+                  maxWidth: 700,
+                  mx: 'auto'
+                }}
+              >
+                Get started in minutes with our easy-to-use platform.
+                No long-term contracts, cancel anytime.
+              </Typography>
+              <Stack 
+                direction={{ xs: 'column', sm: 'row' }} 
+                spacing={3} 
+                justifyContent="center"
+              >
+                <Button 
+                  variant="contained" 
+                  color="secondary" 
+                  size="large"
+                  href="/signup"
+                  endIcon={<RocketLaunch />}
+                  sx={{ 
+                    px: 6,
+                    py: 1.8,
+                    borderRadius: 3,
+                    fontWeight: 600,
+                    fontSize: '1.125rem',
+                    boxShadow: '0 4px 14px rgba(0,0,0,0.25)',
+                    transition: 'all 0.3s ease',
+                    '&:hover': {
+                      transform: 'translateY(-3px)',
+                      boxShadow: '0 6px 20px rgba(0,0,0,0.3)',
+                    }
+                  }}
+                >
+                  Start Free Trial
+                </Button>
+                <Button 
+                  variant="outlined" 
+                  color="inherit" 
+                  size="large"
+                  href="/contact"
+                  endIcon={<ArrowForward />}
+                  sx={{ 
+                    px: 6,
+                    py: 1.8,
+                    borderRadius: 3,
+                    fontWeight: 600,
+                    fontSize: '1.125rem',
+                    borderWidth: 2,
+                    transition: 'all 0.3s ease',
+                    '&:hover': {
+                      borderWidth: 2,
+                      bgcolor: 'rgba(255,255,255,0.1)',
+                    }
+                  }}
+                >
+                  Contact Sales
+                </Button>
+              </Stack>
+            </Box>
+          </Fade>
+          
+          {/* User count stat */}
+          <Fade in timeout={1500}>
+            <Box sx={{ 
+              mt: 8, 
+              pt: 4,
+              borderTop: '1px solid rgba(255,255,255,0.2)',
+              opacity: 0.9
+            }}>
+              <Typography variant="h6" component="p" fontWeight={300}>
+                Trusted by{' '}
+                <Box component="span" sx={{ fontWeight: 700, color: theme.palette.secondary.light }}>
+                  10,000+
+                </Box>
+                {' '}developers & businesses worldwide
+              </Typography>
+            </Box>
+          </Fade>
+        </Container>
+      </Box>
+      
+      {/* Footer link preview */}
+      <Box sx={{ 
+        py: 2,
+        bgcolor: theme.palette.primary.dark,
+        color: 'rgba(255,255,255,0.7)',
+        textAlign: 'center',
+        fontSize: '0.875rem'
+      }}>
+        <Container>
+          <Stack 
+            direction={{ xs: 'column', sm: 'row' }} 
+            spacing={{ xs: 2, sm: 4 }} 
+            justifyContent="center"
+          >
+            <Typography variant="body2">© 2025 Cloud Hosting Inc.</Typography>
+            <Typography variant="body2" component="a" href="/terms" sx={{ color: 'inherit', textDecoration: 'none', '&:hover': { color: 'white' } }}>Terms</Typography>
+            <Typography variant="body2" component="a" href="/privacy" sx={{ color: 'inherit', textDecoration: 'none', '&:hover': { color: 'white' } }}>Privacy</Typography>
+            <Typography variant="body2" component="a" href="/security" sx={{ color: 'inherit', textDecoration: 'none', '&:hover': { color: 'white' } }}>Security</Typography>
+          </Stack>
+        </Container>
       </Box>
     </Box>
   );

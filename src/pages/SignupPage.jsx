@@ -13,9 +13,7 @@ const SignupPage = () => {
           alignItems: 'center',
         }}
       >
-        <Typography component="h1" variant="h4">
-          Create a new account
-        </Typography>
+      
         <SignupForm />
         
       </Box>
