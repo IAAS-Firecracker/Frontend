@@ -30,11 +30,15 @@ import {
   Settings as SettingsIcon,
   Help as HelpIcon
 } from '@mui/icons-material';
+import { useSelector } from 'react-redux';
 
 function Sidebar({ open, toggleDrawer }) {
   const theme = useTheme();
   const [adminExpanded, setAdminExpanded] = React.useState(true);
+  
+  const isAdmin = useSelector((state)=> state.isAdmin);
 
+  console.log(isAdmin);
   const handleAdminToggle = () => {
     setAdminExpanded(!adminExpanded);
   };
@@ -159,7 +163,7 @@ function Sidebar({ open, toggleDrawer }) {
         <Divider sx={{ my: 1.5, mx: 2 }} />
         
         {/* Admin Section with Expand/Collapse */}
-        <List component="nav" sx={{ pt: 0 }}>
+       { isAdmin&& <List component="nav" sx={{ pt: 0 }}>
           <ListItem sx={{ display: 'block', px: 2, py: 0.5 }}>
             <Box 
               sx={{ 
@@ -254,8 +258,10 @@ function Sidebar({ open, toggleDrawer }) {
           </Collapse>
         </List>
         
-        <Divider sx={{ my: 1.5, mx: 2 }} />
         
+        
+        }
+        <Divider sx={{ my: 1.5, mx: 2 }} />
         {/* Support Section */}
         <List component="nav">
           {supportNavItems.map((item, index) => (

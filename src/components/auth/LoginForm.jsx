@@ -27,8 +27,15 @@ import {
   CheckCircle as CheckCircleIcon
 } from '@mui/icons-material';
 
+import {login} from '../../api/user-backend';
+import { useNavigate } from 'react-router-dom';
+import { useDispatch } from 'react-redux';
+import { authActions } from '../../store';
+
 const LoginForm = () => {
   const theme = useTheme();
+  const dispatch = useDispatch();
+  const navigate = useNavigate();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
@@ -40,6 +47,26 @@ const LoginForm = () => {
   const handleTogglePasswordVisibility = () => {
     setShowPassword(!showPassword);
   };
+
+  const onResponseReceived = (data)=>{
+    console.log(data);
+    localStorage.setItem('iaas-userId',data.user.id);
+    localStorage.setItem('iaas-token',data.token);
+    localStorage.setItem('iaas-email',data.user.email);
+    localStorage.setItem('iaas-username', data.user.name);
+
+    localStorage.setItem('iaas-admin', data.user.role === 'admin');
+
+    dispatch(authActions.login());
+    if(data.user.role === 'admin'){
+
+      dispatch(authActions.setAdmin());
+    }
+    
+    //navigate('/dashboard');
+
+
+  }
 
   const validateForm = () => {
     // Basic validation
@@ -71,7 +98,8 @@ const LoginForm = () => {
       
       try {
         // Simulate API call
-        await new Promise(resolve => setTimeout(resolve, 1500));
+        login({email:email, password: password}).then(onResponseReceived).catch(setError(e)).finally(()=>setLoading(false));
+
         console.log('Login submitted:', { email, password, rememberMe });
         
         // Simulate successful login

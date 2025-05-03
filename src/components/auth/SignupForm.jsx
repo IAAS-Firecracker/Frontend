@@ -31,6 +31,8 @@ import {
   Info as InfoIcon
 } from '@mui/icons-material';
 
+import {register} from '../../api/user-backend'
+
 const SignupForm = () => {
   const theme = useTheme();
   const [loading, setLoading] = useState(false);
@@ -131,6 +133,13 @@ const SignupForm = () => {
     }
   };
 
+   const onResponseReceived = (data)=>{
+      console.log(data);
+      setIsSubmitted(true);
+   
+  
+    }
+
   const validateForm = () => {
     const errors = {};
     
@@ -181,11 +190,16 @@ const SignupForm = () => {
     if (Object.keys(errors).length === 0) {
       setLoading(true);
       
+
+
       try {
         // Simulate API call
-        await new Promise(resolve => setTimeout(resolve, 1500));
-        console.log('Signup submitted:', formData);
-        setIsSubmitted(true);
+       
+      register({name: formData.name, email: formData.email, password: formData.password})
+      .then(onResponseReceived)
+      .catch((e)=>console.log(e))
+      .finally(()=>setLoading(false));
+
       } catch (error) {
         console.error('Signup error:', error);
         setFormErrors(prev => ({

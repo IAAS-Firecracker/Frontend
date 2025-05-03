@@ -62,7 +62,7 @@ export const createAdminUser = async (data)=>{
 
 export const getUsers = async ()=>{
 
-    const res = await axios.get(`/${SERVICE_NAME}/users`).catch((err)=> console.log(err));
+    const res = await axios.get(`/${SERVICE_NAME}/api/users`).catch((err)=> console.log(err));
 
     if(res.status !== 200){
         return console.log("Unable to fetch users");
@@ -78,7 +78,7 @@ export const getUsers = async ()=>{
 
 export const getUserById = async (id)=>{
 
-    const res = await axios.get(`/${SERVICE_NAME}/users/${id}`).catch((err)=> console.log(err));
+    const res = await axios.get(`/${SERVICE_NAME}/api/users/${id}`).catch((err)=> console.log(err));
 
     if(res.status !== 200){
         return console.log("Unable to fetch users");
@@ -96,7 +96,7 @@ export const getLoggedInUser = async ()=>{
 
     let userId = parseInt(localStorage.getItem('iaas-userId'));
 
-    const res = await axios.get(`/${SERVICE_NAME}/users/${userId}`).catch((err)=> console.log(err));
+    const res = await axios.get(`/${SERVICE_NAME}/api/users/${userId}`).catch((err)=> console.log(err));
 
     if(res.status !== 200){
         return console.log("Unable to fetch users");

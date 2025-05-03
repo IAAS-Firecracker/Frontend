@@ -30,9 +30,18 @@ import {
 } from '@mui/icons-material';
 import Sidebar from './Sidebar';
 
+import { authActions } from '../../store';
+import { useDispatch, useSelector } from 'react-redux';
+import { useNavigate } from 'react-router-dom';
+
 const Header = () => {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('md'));
+
+  const dispatch = useDispatch();
+  const navigate = useNavigate();
+  const isLoggedIn = useSelector(state => state.isLoggedIn);
+  
   
   // User menu state
   const [userAnchorEl, setUserAnchorEl] = React.useState(null);
@@ -65,6 +74,16 @@ const Header = () => {
     setOpenDrawer(newOpen);
   };
 
+  const handleLogout = () => {
+    handleUserMenuClose();
+    localStorage.clear();
+    dispatch(authActions.logout());
+    navigate('/login');
+  };
+
+  const username = localStorage.getItem('iaas-username') || 'Anonymous';
+  const email = localStorage.getItem('iaas-email') || false;
+
   return (
     <Box sx={{ flexGrow: 1 }}>
       <AppBar 
@@ -78,7 +97,7 @@ const Header = () => {
         <Toolbar sx={{ justifyContent: 'space-between' }}>
           {/* Left Section: Menu Icon & Logo */}
           <Box sx={{ display: 'flex', alignItems: 'center' }}>
-            <IconButton
+            {isLoggedIn && ( <IconButton
               size="large"
               edge="start"
               color="inherit"
@@ -92,7 +111,7 @@ const Header = () => {
               }}
             >
               <MenuIcon />
-            </IconButton>
+            </IconButton>)}
             
             <Typography 
               variant="h6" 
@@ -129,6 +148,8 @@ const Header = () => {
               >
                 Home
               </Button>
+              {
+                isLoggedIn && <>
               <Button 
                 color="inherit" 
                 href="/dashboard"
@@ -155,6 +176,8 @@ const Header = () => {
               >
                 VMs
               </Button>
+              </>
+            }
             </Box>
           )}
           
@@ -201,7 +224,7 @@ const Header = () => {
                   fontSize: '1rem',
                   fontWeight: 'bold'
                 }}>
-                  U
+                  {username.charAt(0).toUpperCase()}
                 </Avatar>
               </IconButton>
             </Tooltip>
@@ -305,43 +328,46 @@ const Header = () => {
         anchorOrigin={{ horizontal: 'right', vertical: 'bottom' }}
         TransitionComponent={Fade}
       >
-        <Box sx={{ p: 2, display: 'flex', alignItems: 'center', gap: 1 }}>
-          <Avatar sx={{ bgcolor: theme.palette.secondary.main }}>U</Avatar>
+        <Box sx={{ p: 2, display: 'flex' , alignItems: 'center', gap: 1 }}>
+          <Avatar sx={{ bgcolor: theme.palette.secondary.main }}>{username.charAt(0).toUpperCase()}</Avatar>
           <Box>
-            <Typography variant="subtitle2">Admin User</Typography>
-            <Typography variant="caption" color="text.secondary">admin@example.com</Typography>
+            <Typography variant="subtitle2">{username}</Typography>
           </Box>
         </Box>
         <Divider />
+        { isLoggedIn && (
         <MenuItem sx={{ gap: 1.5 }}>
           <ListItemIcon>
             <Person fontSize="small" />
           </ListItemIcon>
           Profile
-        </MenuItem>
-        <MenuItem sx={{ gap: 1.5 }}>
+        </MenuItem>)}
+
+         { isLoggedIn && (<MenuItem sx={{ gap: 1.5 }}>
           <ListItemIcon>
             <AccountCircle fontSize="small" />
           </ListItemIcon>
           My account
-        </MenuItem>
+        </MenuItem>)}
         <Divider />
-        <MenuItem sx={{ gap: 1.5 }}>
+        { isLoggedIn && ( <MenuItem sx={{ gap: 1.5 }}>
           <ListItemIcon>
             <Settings fontSize="small" />
           </ListItemIcon>
           Settings
-        </MenuItem>
-        <MenuItem sx={{ gap: 1.5 }}>
+        </MenuItem>)}
+       
+        { isLoggedIn && ( <MenuItem onClick={handleLogout} sx={{ gap: 1.5 }}>
           <ListItemIcon>
             <Logout fontSize="small" />
           </ListItemIcon>
           Logout
-        </MenuItem>
+        </MenuItem>)
+        }
       </Menu>
       
       {/* Sidebar Component */}
-      <Sidebar open={openDrawer} toggleDrawer={toggleDrawer} />
+     {isLoggedIn && <Sidebar open={openDrawer} toggleDrawer={toggleDrawer} />}
     </Box>
   );
 };

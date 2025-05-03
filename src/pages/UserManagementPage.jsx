@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import {
   Container,
   Box,
@@ -29,11 +29,14 @@ import {
   LockReset as ResetPasswordIcon
 } from '@mui/icons-material';
 
+import { getUsers } from '../api/user-backend';
+
 const UserManagementPage = () => {
   const [anchorEl, setAnchorEl] = React.useState(null);
   const [selectedUser, setSelectedUser] = React.useState(null);
   const [searchTerm, setSearchTerm] = React.useState('');
-
+ 
+  const [users, setUsers] = React.useState([]);
   const handleMenuOpen = (event, userId) => {
     setAnchorEl(event.currentTarget);
     setSelectedUser(userId);
@@ -49,12 +52,18 @@ const UserManagementPage = () => {
     handleMenuClose();
   };
 
-  // Mock data
-  const users = [
-    { id: 1, name: 'John Doe', email: 'john@example.com', role: 'Admin', status: 'Active' },
-    { id: 2, name: 'Jane Smith', email: 'jane@example.com', role: 'User', status: 'Active' },
-    { id: 3, name: 'Bob Johnson', email: 'bob@example.com', role: 'User', status: 'Inactive' },
-  ];
+  const onResponseReceived = (data)=>{
+    console.log(data);
+    setUsers(data.data);
+  }
+ 
+  useEffect(()=>{
+      getUsers().
+      then(onResponseReceived)
+      .catch((e)=>console.log(e));
+
+  },[]);
+ 
 
   const filteredUsers = users.filter(user =>
     user.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -95,6 +104,7 @@ const UserManagementPage = () => {
         <Table>
           <TableHead>
             <TableRow>
+              <TableCell>Id</TableCell>
               <TableCell>Name</TableCell>
               <TableCell>Email</TableCell>
               <TableCell>Role</TableCell>
@@ -105,6 +115,7 @@ const UserManagementPage = () => {
           <TableBody>
             {filteredUsers.map((user) => (
               <TableRow key={user.id}>
+                <TableCell>{user.id}</TableCell>
                 <TableCell>{user.name}</TableCell>
                 <TableCell>{user.email}</TableCell>
                 <TableCell>
@@ -114,8 +125,8 @@ const UserManagementPage = () => {
                       px: 1,
                       py: 0.5,
                       borderRadius: 1,
-                      bgcolor: user.role === 'Admin' ? 'primary.light' : 'grey.100',
-                      color: user.role === 'Admin' ? 'primary.dark' : 'text.primary'
+                      bgcolor: user.role === 'admin' ? 'primary.light' : 'grey.100',
+                      color: user.role === 'admin' ? 'primary.dark' : 'text.primary'
                     }}
                   >
                     {user.role}
@@ -128,8 +139,8 @@ const UserManagementPage = () => {
                       px: 1,
                       py: 0.5,
                       borderRadius: 1,
-                      bgcolor: user.status === 'Active' ? 'success.light' : 'error.light',
-                      color: user.status === 'Active' ? 'success.dark' : 'error.dark'
+                      bgcolor: user.updatedAt ? 'success.light' : 'error.light',
+                      color: user.updatedAt  ? 'success.dark' : 'error.dark'
                     }}
                   >
                     {user.status}
