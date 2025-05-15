@@ -29,7 +29,13 @@ import {
   AdminPanelSettings as AdminIcon,
   Settings as SettingsIcon,
   Help as HelpIcon
+  
 } from '@mui/icons-material';
+
+import LanIcon from '@mui/icons-material/Lan';
+import Diversity2Icon from '@mui/icons-material/Diversity2';
+import LocalOfferIcon from '@mui/icons-material/LocalOffer';
+
 import { useSelector } from 'react-redux';
 
 function Sidebar({ open, toggleDrawer }) {
@@ -53,7 +59,14 @@ function Sidebar({ open, toggleDrawer }) {
 
   const adminNavItems = [
     { name: "Users", icon: <PeopleIcon />, route: '/users' },
-    { name: "Virtual Machines", icon: <VmIcon />, route: '/vms' }
+    { name: "Virtual Machines", icon: <VmIcon />, route: '/vms' },
+    { name: "Clusters", icon: <LanIcon/>, route: '/clusters' },
+    { name: "System Images", icon: <Diversity2Icon/>, route: '/system-images' },
+    { name: "Vm offers Management", icon: <LocalOfferIcon/>, route: '/vm-offers-management' }
+
+
+
+
   ];
   
   const supportNavItems = [

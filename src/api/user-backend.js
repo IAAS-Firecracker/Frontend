@@ -109,6 +109,51 @@ export const getLoggedInUser = async ()=>{
 
 
 
+// Add these to your user-backend.js file
+
+export const updateUser = async (userId, data) => {
+  const res = await axios.patch(`/${SERVICE_NAME}/api/users/${userId}`, {
+    name: data.name,
+    email: data.email,
+    role: data.role,
+    status: data.status
+  }).catch((err) => console.log(err));
+
+  if (res.status !== 200) {
+    return console.log(`Failed to update user ${userId} error code ${res.status}`);
+  }
+
+  const resData = await res.data;
+  return resData;
+};
+
+export const deleteUser = async (userId) => {
+  const res = await axios.delete(`/${SERVICE_NAME}/api/users/${userId}`)
+    .catch((err) => console.log(err));
+
+  if (res.status !== 200) {
+    return console.log(`Failed to delete user ${userId} error code ${res.status}`);
+  }
+
+  const resData = await res.data;
+  return resData;
+};
+
+export const resetUserPassword = async (userId, data) => {
+  const res = await axios.post(`/${SERVICE_NAME}/api/users/${userId}/reset-password`, {
+    password: data.password
+  }).catch((err) => console.log(err));
+
+  if (res.status !== 200) {
+    return console.log(`Failed to reset password for user ${userId} error code ${res.status}`);
+  }
+
+  const resData = await res.data;
+  return resData;
+};
+
+
+
 
 
 

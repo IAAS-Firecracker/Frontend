@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { 
   Grid, 
   Container, 
@@ -18,11 +18,23 @@ import {
   MenuItem,
   Tab,
   Tabs,
+  Table,
+  TableBody,
+  TableCell,
+  TableContainer,
+  TableHead,
+  TableRow,
   useTheme,
   useMediaQuery,
   alpha,
   Breadcrumbs, 
-  Link
+  Link,
+  Alert,
+  ListItemIcon,
+  ListItemText,
+  CircularProgress,
+  Switch,
+  FormControlLabel
 } from '@mui/material';
 
 import { 
@@ -44,14 +56,27 @@ import {
   Dashboard as DashboardIcon,
   Home as HomeIcon,
   Computer as ComputerIcon,
-  NavigateNext as NavigateNextIcon
+  NavigateNext as NavigateNextIcon,
+  Person as PersonIcon,
+  SupervisorAccount as AdminIcon,
+  VpnKey as VpnKeyIcon,
+  BarChart as BarChartIcon,
+  Storage as DriveIcon,
+  Payment as PaymentIcon,
+  Settings as SettingsIcon,
+  Support as SupportIcon,
+  Notifications as NotificationsIcon,
+  PersonAdd as PersonAddIcon,
+  Group as GroupIcon,
+  Security as SecurityIcon,
+  Https as HttpsIcon,
+  Delete as DeleteIcon,
+  Report as ReportIcon
 } from '@mui/icons-material';
 
-// We'll import the components as if they exist, but implement their content directly here
-// import StatsCard from '../components/Dashboard/StatsCard';
-// import VmList from '../components/Dashboard/VmList';
-// import QuickActions from '../components/Dashboard/QuickActions';
-// import ResourceUsage from '../components/Dashboard/ResourceUsage';
+// Import API functions
+import { getLoggedInUser } from '../api/user-backend';
+import { getVms, startVm, stopVm, deleteVm } from '../api/vm-host-backend';
 
 // StatsCard Component
 const StatsCard = ({ title, value, icon, color, secondaryValue, change }) => {
@@ -116,7 +141,7 @@ const StatsCard = ({ title, value, icon, color, secondaryValue, change }) => {
 };
 
 // VM Item Component (used within VmList)
-const VmItem = ({ vm, onAction }) => {
+const VmItem = ({ vm, onAction, isAdmin }) => {
   const theme = useTheme();
   const [anchorEl, setAnchorEl] = useState(null);
   
@@ -126,6 +151,11 @@ const VmItem = ({ vm, onAction }) => {
   
   const handleCloseMenu = () => {
     setAnchorEl(null);
+  };
+  
+  const handleMenuAction = (action) => {
+    onAction(vm.id, action);
+    handleCloseMenu();
   };
   
   const getStatusColor = (status) => {
@@ -182,6 +212,13 @@ const VmItem = ({ vm, onAction }) => {
               <Typography variant="body2" color="text.secondary">
                 {vm.os}
               </Typography>
+              {isAdmin && vm.owner && (
+                <Chip 
+                  size="small" 
+                  label={`Owner: ${vm.owner}`} 
+                  sx={{ mt: 0.5, height: 20 }}
+                />
+              )}
             </Box>
           </Stack>
         </Grid>
@@ -242,13 +279,50 @@ const VmItem = ({ vm, onAction }) => {
               transformOrigin={{ horizontal: 'right', vertical: 'top' }}
               anchorOrigin={{ horizontal: 'right', vertical: 'bottom' }}
             >
-              <MenuItem dense onClick={handleCloseMenu}>View Details</MenuItem>
-              <MenuItem dense onClick={handleCloseMenu}>Console</MenuItem>
-              <MenuItem dense onClick={handleCloseMenu}>Resize</MenuItem>
-              <MenuItem dense onClick={handleCloseMenu}>Backups</MenuItem>
+              <MenuItem dense onClick={() => handleMenuAction('viewDetails')}>
+                <ListItemIcon>
+                  <DnsIcon fontSize="small" />
+                </ListItemIcon>
+                <ListItemText>View Details</ListItemText>
+              </MenuItem>
+              
+              <MenuItem dense onClick={() => handleMenuAction('console')}>
+                <ListItemIcon>
+                  <ComputerIcon fontSize="small" />
+                </ListItemIcon>
+                <ListItemText>Console</ListItemText>
+              </MenuItem>
+              
+              <MenuItem dense onClick={() => handleMenuAction('resize')}>
+                <ListItemIcon>
+                  <MemoryIcon fontSize="small" />
+                </ListItemIcon>
+                <ListItemText>Resize</ListItemText>
+              </MenuItem>
+              
+              <MenuItem dense onClick={() => handleMenuAction('backups')}>
+                <ListItemIcon>
+                  <StorageIcon fontSize="small" />
+                </ListItemIcon>
+                <ListItemText>Backups</ListItemText>
+              </MenuItem>
+              
+              {isAdmin && (
+                <MenuItem dense onClick={() => handleMenuAction('transferOwnership')}>
+                  <ListItemIcon>
+                    <PersonAddIcon fontSize="small" />
+                  </ListItemIcon>
+                  <ListItemText>Transfer Ownership</ListItemText>
+                </MenuItem>
+              )}
+              
               <Divider />
-              <MenuItem dense onClick={handleCloseMenu} sx={{ color: theme.palette.error.main }}>
-                Delete
+              
+              <MenuItem dense onClick={() => handleMenuAction('delete')} sx={{ color: theme.palette.error.main }}>
+                <ListItemIcon>
+                  <DeleteIcon fontSize="small" color="error" />
+                </ListItemIcon>
+                <ListItemText>Delete</ListItemText>
               </MenuItem>
             </Menu>
           </Stack>
@@ -259,7 +333,7 @@ const VmItem = ({ vm, onAction }) => {
 };
 
 // VmList Component
-const VmList = ({ vms, onVmAction, onRefresh, onCreateVm }) => {
+const VmList = ({ vms, onVmAction, onRefresh, onCreateVm, isLoading, isAdmin }) => {
   const theme = useTheme();
   
   return (
@@ -273,7 +347,7 @@ const VmList = ({ vms, onVmAction, onRefresh, onCreateVm }) => {
     >
       <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
         <Typography variant="h6" fontWeight={600}>
-          Virtual Machines
+          {isAdmin ? 'All Virtual Machines' : 'Your Virtual Machines'}
         </Typography>
         
         <Stack direction="row" spacing={1}>
@@ -282,8 +356,9 @@ const VmList = ({ vms, onVmAction, onRefresh, onCreateVm }) => {
             startIcon={<RefreshIcon />} 
             onClick={onRefresh}
             sx={{ minWidth: 'auto', px: 1 }}
+            disabled={isLoading}
           >
-            Refresh
+            {isLoading ? <CircularProgress size={16} /> : 'Refresh'}
           </Button>
           <Button 
             variant="contained" 
@@ -296,25 +371,38 @@ const VmList = ({ vms, onVmAction, onRefresh, onCreateVm }) => {
         </Stack>
       </Box>
       
-      <Box>
-        {vms.length > 0 ? (
-          vms.map((vm) => (
-            <VmItem key={vm.id} vm={vm} onAction={onVmAction} />
-          ))
-        ) : (
-          <Box textAlign="center" py={3}>
-            <Typography color="text.secondary">No virtual machines found</Typography>
-            <Button 
-              variant="outlined" 
-              startIcon={<AddIcon />} 
-              sx={{ mt: 2 }} 
-              onClick={onCreateVm}
-            >
-              Create your first VM
-            </Button>
-          </Box>
-        )}
-      </Box>
+      {isLoading && (
+        <Box sx={{ display: 'flex', justifyContent: 'center', py: 4 }}>
+          <CircularProgress />
+        </Box>
+      )}
+      
+      {!isLoading && (
+        <Box>
+          {vms.length > 0 ? (
+            vms.map((vm) => (
+              <VmItem 
+                key={vm.id} 
+                vm={vm} 
+                onAction={onVmAction} 
+                isAdmin={isAdmin} 
+              />
+            ))
+          ) : (
+            <Box textAlign="center" py={3}>
+              <Typography color="text.secondary">No virtual machines found</Typography>
+              <Button 
+                variant="outlined" 
+                startIcon={<AddIcon />} 
+                sx={{ mt: 2 }} 
+                onClick={onCreateVm}
+              >
+                Create your first VM
+              </Button>
+            </Box>
+          )}
+        </Box>
+      )}
     </Paper>
   );
 };
@@ -557,16 +645,390 @@ const NetworkStatus = ({ network }) => {
   );
 };
 
+// System Status Component (for admin)
+const SystemStatus = ({ services }) => {
+  const theme = useTheme();
+  
+  return (
+    <Paper
+      elevation={0}
+      sx={{
+        p: 3,
+        borderRadius: 3,
+        border: `1px solid ${theme.palette.divider}`
+      }}
+    >
+      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
+        <Typography variant="h6" fontWeight={600}>
+          System Status
+        </Typography>
+        
+        <Button 
+          size="small" 
+          startIcon={<RefreshIcon />}
+        >
+          Refresh
+        </Button>
+      </Box>
+      
+      <Grid container spacing={2}>
+        {services.map((service) => (
+          <Grid item xs={12} sm={6} key={service.name}>
+            <Paper 
+              variant="outlined" 
+              sx={{ 
+                p: 2, 
+                borderRadius: 2,
+                borderLeft: `4px solid ${
+                  service.status === 'operational' ? theme.palette.success.main :
+                  service.status === 'degraded' ? theme.palette.warning.main :
+                  theme.palette.error.main
+                }`
+              }}
+            >
+              <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <Typography variant="body1" fontWeight={600}>
+                  {service.name}
+                </Typography>
+                <Chip 
+                  size="small" 
+                  label={service.status.toUpperCase()} 
+                  color={
+                    service.status === 'operational' ? 'success' :
+                    service.status === 'degraded' ? 'warning' :
+                    'error'
+                  }
+                />
+              </Box>
+              <Typography variant="caption" color="text.secondary">
+                Last updated: {service.lastUpdated}
+              </Typography>
+            </Paper>
+          </Grid>
+        ))}
+      </Grid>
+    </Paper>
+  );
+};
+
+// User Management Component (for admin)
+const UserManagement = ({ users, onUserAction }) => {
+  const theme = useTheme();
+  
+  return (
+    <Paper
+      elevation={0}
+      sx={{
+        p: 3,
+        borderRadius: 3,
+        border: `1px solid ${theme.palette.divider}`
+      }}
+    >
+      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
+        <Typography variant="h6" fontWeight={600}>
+          User Management
+        </Typography>
+        
+        <Button 
+          variant="contained" 
+          size="small" 
+          startIcon={<PersonAddIcon />}
+          onClick={() => onUserAction('add')}
+        >
+          Add User
+        </Button>
+      </Box>
+      
+      <TableContainer component={Paper} variant="outlined" sx={{ mb: 2 }}>
+        <Table size="small">
+          <TableHead>
+            <TableRow>
+              <TableCell>User</TableCell>
+              <TableCell>Email</TableCell>
+              <TableCell>Role</TableCell>
+              <TableCell>Status</TableCell>
+              <TableCell align="right">Actions</TableCell>
+            </TableRow>
+          </TableHead>
+          <TableBody>
+            {users.map((user) => (
+              <TableRow key={user.id}>
+                <TableCell>
+                  <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                    <Avatar 
+                      sx={{ 
+                        width: 30, 
+                        height: 30, 
+                        mr: 1,
+                        bgcolor: user.role === 'admin' ? theme.palette.error.main : theme.palette.primary.main
+                      }}
+                    >
+                      {user.role === 'admin' ? <AdminIcon fontSize="small" /> : <PersonIcon fontSize="small" />}
+                    </Avatar>
+                    <Typography variant="body2">{user.name}</Typography>
+                  </Box>
+                </TableCell>
+                <TableCell>{user.email}</TableCell>
+                <TableCell>
+                  <Chip 
+                    size="small" 
+                    label={user.role.toUpperCase()} 
+                    color={user.role === 'admin' ? 'error' : 'primary'}
+                  />
+                </TableCell>
+                <TableCell>
+                  <Chip 
+                    size="small" 
+                    label={user.status.toUpperCase()} 
+                    color={user.status === 'active' ? 'success' : 'default'}
+                  />
+                </TableCell>
+                <TableCell align="right">
+                  <IconButton size="small" onClick={() => onUserAction('edit', user.id)}>
+                    <MoreVertIcon fontSize="small" />
+                  </IconButton>
+                </TableCell>
+              </TableRow>
+            ))}
+          </TableBody>
+        </Table>
+      </TableContainer>
+      
+      <Box sx={{ textAlign: 'right' }}>
+        <Button size="small" onClick={() => onUserAction('viewAll')}>
+          View All Users
+        </Button>
+      </Box>
+    </Paper>
+  );
+};
+
+// Billing Summary Component
+const BillingSummary = ({ billingData, onViewBilling }) => {
+  const theme = useTheme();
+  
+  return (
+    <Paper
+      elevation={0}
+      sx={{
+        p: 3,
+        borderRadius: 3,
+        border: `1px solid ${theme.palette.divider}`
+      }}
+    >
+      <Typography variant="h6" fontWeight={600} mb={2}>
+        Billing Summary
+      </Typography>
+      
+      <Grid container spacing={2}>
+        <Grid item xs={12}>
+          <Paper
+            variant="outlined"
+            sx={{
+              p: 2,
+              borderRadius: 2,
+              bgcolor: alpha(theme.palette.primary.main, 0.05),
+              borderLeft: `4px solid ${theme.palette.primary.main}`
+            }}
+          >
+            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <Typography variant="subtitle1" fontWeight={600}>
+                Current Month
+              </Typography>
+              <Typography variant="h5" fontWeight={700} color="primary.main">
+                ${billingData.currentMonth.toFixed(2)}
+              </Typography>
+            </Box>
+            <Typography variant="caption" color="text.secondary">
+              Billing period: {billingData.billingPeriod}
+            </Typography>
+          </Paper>
+        </Grid>
+        
+        <Grid item xs={12} sm={6}>
+          <Paper variant="outlined" sx={{ p: 2, borderRadius: 2 }}>
+            <Typography variant="body2" color="text.secondary">
+              Last Month
+            </Typography>
+            <Typography variant="h6" fontWeight={600}>
+              ${billingData.lastMonth.toFixed(2)}
+            </Typography>
+          </Paper>
+        </Grid>
+        
+        <Grid item xs={12} sm={6}>
+          <Paper variant="outlined" sx={{ p: 2, borderRadius: 2 }}>
+            <Typography variant="body2" color="text.secondary">
+              Estimated Total
+            </Typography>
+            <Typography variant="h6" fontWeight={600}>
+              ${billingData.estimatedTotal.toFixed(2)}
+            </Typography>
+          </Paper>
+        </Grid>
+      </Grid>
+      
+      <Button 
+        fullWidth 
+        variant="outlined" 
+        sx={{ mt: 2 }}
+        onClick={onViewBilling}
+      >
+        View Billing Details
+      </Button>
+    </Paper>
+  );
+};
+
+// Notifications Component
+const Notifications = ({ notifications, onViewAll }) => {
+  const theme = useTheme();
+  
+  return (
+    <Paper
+      elevation={0}
+      sx={{
+        p: 3,
+        borderRadius: 3,
+        border: `1px solid ${theme.palette.divider}`
+      }}
+    >
+      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
+        <Typography variant="h6" fontWeight={600}>
+          Notifications
+        </Typography>
+        
+        <Button 
+          size="small" 
+          onClick={onViewAll}
+        >
+          View All
+        </Button>
+      </Box>
+      
+      {notifications.length > 0 ? (
+        <Box>
+          {notifications.map((notification, index) => (
+            <Paper
+              key={index}
+              variant="outlined"
+              sx={{
+                p: 2,
+                mb: 2,
+                borderRadius: 2,
+                borderLeft: `4px solid ${
+                  notification.type === 'info' ? theme.palette.info.main :
+                  notification.type === 'warning' ? theme.palette.warning.main :
+                  notification.type === 'error' ? theme.palette.error.main :
+                  theme.palette.success.main
+                }`
+              }}
+            >
+              <Typography variant="subtitle2" fontWeight={600}>
+                {notification.title}
+              </Typography>
+              <Typography variant="body2" color="text.secondary">
+                {notification.message}
+              </Typography>
+              <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mt: 1 }}>
+                {notification.time}
+              </Typography>
+            </Paper>
+          ))}
+        </Box>
+      ) : (
+        <Box textAlign="center" py={3}>
+          <Typography color="text.secondary">No new notifications</Typography>
+        </Box>
+      )}
+    </Paper>
+  );
+};
+
 // Main Dashboard Page
 const DashboardPage = () => {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('md'));
   
+  // State for user data
+  const [currentUser, setCurrentUser] = useState(null);
+  const [userRole, setUserRole] = useState('user'); // Default to regular user
+  const [loading, setLoading] = useState(true);
+  const [vmLoading, setVmLoading] = useState(true);
+  const [vms, setVms] = useState([]);
+  const [showAllUsers, setShowAllUsers] = useState(false); // For admin to toggle between their VMs and all VMs
+  
+  // Fetch user data on component mount
+  useEffect(() => {
+    fetchUserData();
+  }, []);
+  
+  // Fetch VMs when user data is available
+  useEffect(() => {
+    if (currentUser) {
+      fetchVms();
+    }
+  }, [currentUser, showAllUsers]);
+  
+  // Fetch current user data
+  const fetchUserData = async () => {
+    setLoading(true);
+    try {
+      const userData = await getLoggedInUser();
+      if (userData) {
+        setCurrentUser(userData);
+        setUserRole(userData.role || 'user');
+      }
+    } catch (err) {
+      console.error('Failed to fetch user data:', err);
+    } finally {
+      setLoading(false);
+    }
+  };
+  
+  // Fetch VMs
+  const fetchVms = async () => {
+    setVmLoading(true);
+    try {
+      const vmsData = await getVms();
+      if (vmsData && vmsData.data) {
+        // If admin and showAllUsers is true, show all VMs
+        // Otherwise, filter to show only the current user's VMs
+        const filteredVms = (userRole === 'admin' && showAllUsers)
+          ? vmsData.data
+          : vmsData.data.filter(vm => vm.user_id === currentUser.id);
+        
+        // Add owner information for admin view
+        if (userRole === 'admin') {
+          // This is mock data - in a real app, you'd fetch user details
+          const userMap = {
+            1: 'John Doe',
+            2: 'Jane Smith',
+            3: 'Admin User'
+          };
+          
+          const vmsWithOwners = filteredVms.map(vm => ({
+            ...vm,
+            owner: userMap[vm.user_id] || `User #${vm.user_id}`
+          }));
+          
+          setVms(vmsWithOwners);
+        } else {
+          setVms(filteredVms);
+        }
+      }
+    } catch (err) {
+      console.error('Failed to fetch VMs:', err);
+    } finally {
+      setVmLoading(false);
+    }
+  };
+  
   // Mock data - replace with real API calls
   const stats = [
     { 
       title: 'Active VMs', 
-      value: '3', 
+      value: vms.filter(vm => vm.status === 'running').length.toString(), 
       icon: <DnsIcon />,
       color: theme.palette.primary.main, 
       secondaryValue: '75% of plan',
@@ -595,10 +1057,38 @@ const DashboardPage = () => {
     },
   ];
 
-  const vms = [
-    { id: 1, name: 'Web Server', status: 'running', os: 'Ubuntu 22.04', ip: '192.168.1.100' },
-    { id: 2, name: 'Database', status: 'paused', os: 'Debian 11', ip: '192.168.1.101' },
-    { id: 3, name: 'Backup', status: 'stopped', os: 'CentOS 8', ip: '192.168.1.102' },
+  // Admin stats - additional metrics for administrators
+  const adminStats = [
+    { 
+      title: 'Total Users', 
+      value: '24', 
+      icon: <GroupIcon />,
+      color: theme.palette.warning.main, 
+      secondaryValue: '+3 this month',
+      change: '+14%'
+    },
+    { 
+      title: 'System Load', 
+      value: '68%', 
+      icon: <BarChartIcon />,
+      color: theme.palette.success.main,
+      secondaryValue: 'Healthy',
+    },
+    { 
+      title: 'Disk Usage', 
+      value: '4.2', 
+      icon: <DriveIcon />,
+      color: theme.palette.info.main,
+      secondaryValue: '4.2/10 TB',
+    },
+    { 
+      title: 'Revenue', 
+      value: '$8.4k', 
+      icon: <PaymentIcon />,
+      color: theme.palette.error.main,
+      secondaryValue: 'This month',
+      change: '+22%'
+    },
   ];
   
   const resourceUsage = [
@@ -613,7 +1103,8 @@ const DashboardPage = () => {
     outbound: 182.3,
   };
   
-  const quickActions = [
+  // User quick actions
+  const userQuickActions = [
     { 
       title: 'Create VM', 
       description: 'Launch a new virtual machine', 
@@ -629,7 +1120,7 @@ const DashboardPage = () => {
     { 
       title: 'Configure Firewalls', 
       description: 'Manage network security', 
-      icon: <CloudIcon />, 
+      icon: <HttpsIcon />, 
       onClick: () => console.log('Configure Firewalls') 
     },
     { 
@@ -640,22 +1131,144 @@ const DashboardPage = () => {
     },
   ];
   
+  // Admin quick actions
+  const adminQuickActions = [
+    { 
+      title: 'Add User', 
+      description: 'Create new user account', 
+      icon: <PersonAddIcon />, 
+      onClick: () => console.log('Add User') 
+    },
+    { 
+      title: 'System Settings', 
+      description: 'Configure global system options', 
+      icon: <SettingsIcon />, 
+      onClick: () => console.log('System Settings') 
+    },
+    { 
+      title: 'Security Policy', 
+      description: 'Update platform security settings', 
+      icon: <SecurityIcon />, 
+      onClick: () => console.log('Security Policy') 
+    },
+    { 
+      title: 'View Logs', 
+      description: 'Access system audit logs', 
+      icon: <ReportIcon />, 
+      onClick: () => console.log('View Logs') 
+    },
+  ];
+  
+  // System services status (for admin)
+  const systemServices = [
+    { name: 'VM Hosting Service', status: 'operational', lastUpdated: '1 min ago' },
+    { name: 'Storage Service', status: 'operational', lastUpdated: '5 min ago' },
+    { name: 'Network Service', status: 'degraded', lastUpdated: '12 min ago' },
+    { name: 'Authentication Service', status: 'operational', lastUpdated: '3 min ago' },
+    { name: 'Backup Service', status: 'operational', lastUpdated: '7 min ago' },
+    { name: 'Monitoring Service', status: 'operational', lastUpdated: '2 min ago' },
+  ];
+  
+  // Users data (for admin)
+  const users = [
+    { id: 1, name: 'John Doe', email: 'john@example.com', role: 'user', status: 'active' },
+    { id: 2, name: 'Jane Smith', email: 'jane@example.com', role: 'user', status: 'active' },
+    { id: 3, name: 'Admin User', email: 'admin@example.com', role: 'admin', status: 'active' },
+    { id: 4, name: 'Bob Johnson', email: 'bob@example.com', role: 'user', status: 'inactive' },
+  ];
+  
+  // Billing data
+  const billingData = {
+    currentMonth: 123.45,
+    lastMonth: 98.76,
+    estimatedTotal: 150.00,
+    billingPeriod: 'May 1 - May 31, 2025'
+  };
+  
+  // Notifications
+  const notifications = [
+    { 
+      type: 'info', 
+      title: 'System Maintenance', 
+      message: 'Scheduled maintenance on May 20, 2025 at 02:00 UTC', 
+      time: '2 hours ago' 
+    },
+    { 
+      type: 'success', 
+      title: 'VM Created', 
+      message: 'VM "web-server-01" has been successfully created', 
+      time: '1 day ago' 
+    },
+    { 
+      type: 'warning', 
+      title: 'Storage Usage', 
+      message: 'You have used 80% of your storage allocation', 
+      time: '3 days ago' 
+    },
+  ];
+  
   // Event handlers
   const handleVmAction = (id, action) => {
     console.log(`VM ${id} action: ${action}`);
+    
+    // Handle actual VM actions
+    const targetVm = vms.find(vm => vm.id === id);
+    if (!targetVm) return;
+    
+    switch (action) {
+      case 'start':
+        // Call startVm API
+        console.log(`Starting VM ${targetVm.name}`);
+        break;
+      case 'stop':
+        // Call stopVm API
+        console.log(`Stopping VM ${targetVm.name}`);
+        break;
+      case 'delete':
+        // Call deleteVm API
+        console.log(`Deleting VM ${targetVm.name}`);
+        break;
+      default:
+        console.log(`Action ${action} for VM ${targetVm.name}`);
+    }
   };
   
   const handleRefresh = () => {
     console.log('Refreshing VM list');
+    fetchVms();
   };
   
   const handleCreateVm = () => {
-    console.log('Create VM');
+    console.log('Navigate to Create VM page');
+    // Navigate to VM creation page
+    window.location.href = '/vms';
+  };
+  
+  const handleUserAction = (action, userId) => {
+    console.log(`User action: ${action}${userId ? ` for user ${userId}` : ''}`);
+  };
+  
+  const handleViewBilling = () => {
+    console.log('Navigate to Billing page');
+    // Navigate to billing page
+    window.location.href = '/billing';
+  };
+  
+  const handleViewAllNotifications = () => {
+    console.log('Navigate to Notifications page');
+    // Navigate to notifications page
+    window.location.href = '/notifications';
+  };
+  
+  // Toggle between showing all users' VMs or just admin's VMs
+  const handleToggleUserFilter = (event) => {
+    setShowAllUsers(event.target.checked);
   };
 
   return (
     <Box sx={{ py: 3, px: { xs: 2, md: 3 } }}>
-         <Breadcrumbs 
+      {/* Breadcrumb Navigation */}
+      <Breadcrumbs 
         separator={<NavigateNextIcon fontSize="small" />} 
         aria-label="breadcrumb"
         sx={{ mb: 2 }}
@@ -677,6 +1290,8 @@ const DashboardPage = () => {
           Dashboard
         </Typography>
       </Breadcrumbs>
+      
+      {/* Page Header */}
       <Box sx={{ mb: 4 }}>
         <Typography 
           variant="h4" 
@@ -684,16 +1299,50 @@ const DashboardPage = () => {
           fontWeight={700} 
           sx={{ mb: 1 }}
         >
-          Dashboard
+          {userRole === 'admin' ? 'Admin Dashboard' : 'Dashboard'}
         </Typography>
         <Typography variant="body1" color="text.secondary">
-          Welcome back! Here's an overview of your cloud resources.
+          {loading ? 'Loading...' : `Welcome back${currentUser ? ', ' + currentUser.name : ''}! Here's an overview of your cloud resources.`}
         </Typography>
       </Box>
       
+      {/* Admin Toggle (For Admins Only) */}
+      {userRole === 'admin' && (
+        <Box sx={{ mb: 3 }}>
+          <Paper 
+            variant="outlined" 
+            sx={{ 
+              p: 2,
+              bgcolor: alpha(theme.palette.warning.main, 0.05),
+              borderRadius: 2
+            }}
+          >
+            <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+              <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                <AdminIcon sx={{ color: theme.palette.warning.main, mr: 1 }} />
+                <Typography variant="subtitle1" fontWeight={600}>
+                  Admin View
+                </Typography>
+              </Box>
+              
+              <FormControlLabel
+                control={
+                  <Switch 
+                    checked={showAllUsers} 
+                    onChange={handleToggleUserFilter}
+                    color="warning"
+                  />
+                }
+                label={showAllUsers ? "Showing all users' VMs" : "Showing only your VMs"}
+              />
+            </Box>
+          </Paper>
+        </Box>
+      )}
+      
       <Grid container spacing={3}>
         {/* Stats Cards */}
-        {stats.map((stat, index) => (
+        {(userRole === 'admin' && showAllUsers ? adminStats : stats).map((stat, index) => (
           <Grid item xs={12} sm={6} md={3} key={index}>
             <StatsCard
               title={stat.title}
@@ -713,22 +1362,61 @@ const DashboardPage = () => {
             onVmAction={handleVmAction} 
             onRefresh={handleRefresh}
             onCreateVm={handleCreateVm}
+            isLoading={vmLoading}
+            isAdmin={userRole === 'admin'}
           />
         </Grid>
         
         {/* Quick Actions */}
         <Grid item xs={12} lg={4}>
-          <QuickActions actions={quickActions} />
+          <QuickActions 
+            actions={userRole === 'admin' && showAllUsers ? adminQuickActions : userQuickActions} 
+          />
         </Grid>
         
-        {/* Resource Usage */}
-        <Grid item xs={12} md={8}>
-          <ResourceUsage data={resourceUsage} />
+        {/* For regular users: Resource Usage and Network Status */}
+        {(!userRole === 'admin' || !showAllUsers) && (
+          <>
+            <Grid item xs={12} md={8}>
+              <ResourceUsage data={resourceUsage} />
+            </Grid>
+            
+            <Grid item xs={12} md={4}>
+              <NetworkStatus network={networkStatus} />
+            </Grid>
+          </>
+        )}
+        
+        {/* For admins: System Status and User Management */}
+        {userRole === 'admin' && showAllUsers && (
+          <>
+            <Grid item xs={12} md={6}>
+              <SystemStatus services={systemServices} />
+            </Grid>
+            
+            <Grid item xs={12} md={6}>
+              <UserManagement 
+                users={users}
+                onUserAction={handleUserAction}
+              />
+            </Grid>
+          </>
+        )}
+        
+        {/* Billing Summary (For Both) */}
+        <Grid item xs={12} md={userRole === 'admin' && showAllUsers ? 6 : 4}>
+          <BillingSummary 
+            billingData={billingData} 
+            onViewBilling={handleViewBilling}
+          />
         </Grid>
         
-        {/* Network Status */}
-        <Grid item xs={12} md={4}>
-          <NetworkStatus network={networkStatus} />
+        {/* Notifications (For Both) */}
+        <Grid item xs={12} md={userRole === 'admin' && showAllUsers ? 6 : 8}>
+          <Notifications 
+            notifications={notifications}
+            onViewAll={handleViewAllNotifications}
+          />
         </Grid>
       </Grid>
     </Box>

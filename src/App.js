@@ -9,6 +9,9 @@ import LoginPage from './pages/LoginPage';
 import SignupPage from './pages/SignupPage';
 import VmManagementPage from './pages/VmManagementPage';
 import UserManagementPage from './pages/UserManagementPage';
+import ClusterManagementPage from './pages/ClusterManagementPage';
+import SystemImagesPage from './pages/SystemImagesPage';
+import VMOffersPage from './pages/VmOffersPage';
 import Header from './components/layout/Header';
 import Footer from './components/layout/Footer';
 import { authActions } from './store';
@@ -66,7 +69,20 @@ console.log(localStorage.getItem('iaas-admin'));
             {isAdmin && <><Route
               path="/users"
               element={<UserManagementPage />}
-            /></>}
+            />
+            <Route
+              path="/clusters"
+              element={<ClusterManagementPage />}
+            />
+             <Route
+              path="/system-images"
+              element={<SystemImagesPage />}
+            />
+            <Route
+              path="/vm-offers-management"
+              element={<VMOffersPage />}
+            />
+            </>}
           </Routes>
           <footer>
             <Footer/>
