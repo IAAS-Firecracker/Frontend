@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   Box,
   Typography,
@@ -37,6 +37,18 @@ import {
 import InfoIcon from '@mui/icons-material/Info';
 // Import your API function
 import { findSuitableHost } from '../../api/cluster-service-backend';
+// Import the VM offers API functions
+import {
+  getVmOffers,
+  getActiveVmOffers,
+} from '../../api/vm-offer-backend';
+
+
+// Import the API functions
+import {
+  getSystemImages
+} from '../../api/system-images-backend';
+
 
 // Mock data for system images and VM types (replace with actual data from your API)
 const SYSTEM_IMAGES = [
@@ -56,6 +68,58 @@ const VM_OFFERS = [
 
 const FindSuitableHost = () => {
   const theme = useTheme();
+
+  const [systemImages, setSystemImages] = useState([]);
+  const [vmOffers, setVmOffers] = useState([]);
+  
+  // Fetch system images on component mount
+    useEffect(() => {
+      fetchSystemImages();
+    }, []);
+    
+    // Fetch all system images
+    const fetchSystemImages = async () => {
+      setLoading(true);
+      setError(null);
+      
+      try {
+        const data = await getSystemImages();
+        if (data) {
+          setSystemImages(data);
+        }
+      } catch (err) {
+        setError('Failed to fetch system images. Please try again.');
+        console.error(err);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+
+    // Fetch VM offers on component mount
+      useEffect(() => {
+        fetchVmOffers();
+      }, []);
+      
+      // Fetch all VM offers or active ones based on filter
+      const fetchVmOffers = async () => {
+        setLoading(true);
+        setError(null);
+        
+        try {
+          const data =  await getActiveVmOffers();
+           
+          
+          if (data) {
+            setVmOffers(data);
+          }
+        } catch (err) {
+          setError('Failed to fetch VM offers. Please try again.');
+          console.error(err);
+        } finally {
+          setLoading(false);
+        }
+      };
   
   // State for resource requirements
   const [formData, setFormData] = useState({
@@ -93,7 +157,7 @@ const FindSuitableHost = () => {
   // Handle VM offer selection
   const handleOfferChange = (event) => {
     const offerId = Number(event.target.value);
-    const offer = VM_OFFERS.find(o => o.id === offerId);
+    const offer = vmOffers.find(o => o.id === offerId);
     
     setSelectedOffer(offer);
     setIsCustomOffer(offer.name === 'Custom');
@@ -117,7 +181,7 @@ const FindSuitableHost = () => {
   // Handle system image selection
   const handleImageChange = (event) => {
     const imageId = Number(event.target.value);
-    const image = SYSTEM_IMAGES.find(img => img.id === imageId);
+    const image = systemImages.find(img => img.id === imageId);
     
     if (image) {
       setFormData({
@@ -135,6 +199,7 @@ const FindSuitableHost = () => {
     setResult(null);
     
     try {
+      console.log(formData);
       const response = await findSuitableHost(formData);
       
       if (response) {
@@ -165,18 +230,23 @@ const FindSuitableHost = () => {
     setError(null);
     // Reset form to default values
     setFormData({
-      name: '',
       cpu_count: 2,
       memory_size_mib: 2048,
       disk_size_gb: 40,
+      name: '',
+      user_id: 1,
       os_type: 'linux',
-      system_image_id: 1,
       root_password: '',
       vm_offer_id: 2,
-      user_id: 1
+      system_image_id: 1
+     
+      
+     
     });
+
+    
     setIsCustomOffer(false);
-    setSelectedOffer(VM_OFFERS[1]);
+    setSelectedOffer(vmOffers[1]);
   };
   
   // Check if the current step is valid for proceeding
@@ -199,6 +269,7 @@ const FindSuitableHost = () => {
   };
   
   // Steps for the suitable host finder
+  console.log(vmOffers.length);
   const steps = [
     {
       label: 'Specify Resource Requirements',
@@ -216,7 +287,7 @@ const FindSuitableHost = () => {
                 label="VM Configuration"
                 onChange={handleOfferChange}
               >
-                {VM_OFFERS.map((offer) => (
+                {vmOffers.map((offer) => (
                   <MenuItem key={offer.id} value={offer.id}>
                     {offer.name} {offer.name !== 'Custom' ? 
                       `(${offer.cpu_count} CPU, ${offer.memory_size_mib / 1024} GB RAM, ${offer.disk_size_gb} GB Storage)` : ''}
@@ -363,7 +434,7 @@ const FindSuitableHost = () => {
               >
                 {SYSTEM_IMAGES.map((image) => (
                   <MenuItem key={image.id} value={image.id}>
-                    {image.name} ({image.type})
+                    {image.name} ({image.os_type})
                   </MenuItem>
                 ))}
               </Select>
@@ -399,24 +470,24 @@ const FindSuitableHost = () => {
               </Typography>
               <Box component="ul" sx={{ pl: 2, mt: 1 }}>
                 {(() => {
-                  const selectedImage = SYSTEM_IMAGES.find(img => img.id === formData.system_image_id);
+                  const selectedImage = systemImages.find(img => img.id === formData.system_image_id);
                   if (!selectedImage) return null;
                   
                   return (
                     <>
                       <li>
                         <Typography variant="body2">
-                          Minimum CPU: {selectedImage.min_cpu} core(s)
+                          Minimum CPU: {2} core(s)
                         </Typography>
                       </li>
                       <li>
                         <Typography variant="body2">
-                          Minimum RAM: {selectedImage.min_ram} GB
+                          Minimum RAM: {2} GB
                         </Typography>
                       </li>
                       <li>
                         <Typography variant="body2">
-                          Minimum Storage: {selectedImage.min_disk} GB
+                          Minimum Storage: {10} GB
                         </Typography>
                       </li>
                     </>

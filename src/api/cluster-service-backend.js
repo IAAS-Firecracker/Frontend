@@ -45,8 +45,9 @@ export const getClusters = async()=>{
     }
 
     const resData = await res.data;
+    console.log(resData);
 
-    return resData;
+    return resData.data.data.clusters;
 }
 
 
@@ -68,7 +69,7 @@ export const getClusterById = async(cluster_id)=>{
 
 
 export const getAvailableClusters = async()=>{
-     const res = await axios.get(`/${SERVICE_NAME}/api/service-clusters/available`).
+     const res = await axios.get(`/${SERVICE_NAME}/api/service-clusters`).
      catch((err)=>console.log(err));
 
 
@@ -77,8 +78,9 @@ export const getAvailableClusters = async()=>{
     }
 
     const resData = await res.data;
+     console.log(resData.data.data.clusters);
 
-    return resData;
+    return resData.data.data.clusters;
 }
 
 
@@ -162,8 +164,7 @@ export const deleteCluster = async(cluster_id)=>{
 
 
 export const findSuitableHost = async(data)=>{
-     const res = await axios.post(`/${SERVICE_NAME}/api/service-clusters/find-suitable-host`,
-        {
+    console.log( {
             cpu_count: data.cpu_count,
             memory_size_mib: data.memory_size_mib,
             disk_size_gb: data.disk_size_gb,
@@ -173,7 +174,22 @@ export const findSuitableHost = async(data)=>{
             root_password: data.root_password,
             vm_offer_id: data.vm_offer_id,
             system_image_id: data.system_image_id
+        });
+     const res = await axios.post(`/${SERVICE_NAME}/api/service-clusters/find-suitable-host`,
+        {
+            cpu_count: data.cpu_count,
+            memory_size_mib: data.memory_size_mib,
+            disk_size_gb: data.disk_size_gb,
+            name: data.name,
+            user_id: `${data.user_id}`,
+            os_type: data.os_type,
+            root_password: data.root_password,
+            vm_offer_id: `${data.vm_offer_id}`,
+            system_image_id: `${data.system_image_id}`
         }
+
+
+      
      ).
      catch((err)=>console.log(err));
 
@@ -183,7 +199,7 @@ export const findSuitableHost = async(data)=>{
     }
 
     const resData = await res.data;
-
+    console.log(resData);
     return resData;
 }
 

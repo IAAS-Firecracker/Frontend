@@ -94,7 +94,7 @@ const VMOffersPage = () => {
     description: '',
     cpu_count: 1,
     memory_size_mib: 1024, // 1 GB
-    disk_size_mib: 10240, // 10 GB
+    disk_size_gb: 10240, // 10 GB
     price_per_hour: 0.00
   });
   
@@ -133,7 +133,7 @@ const VMOffersPage = () => {
         : await getVmOffers();
       
       if (data) {
-        setVmOffers(data.data || data);
+        setVmOffers(data);
       }
     } catch (err) {
       setError('Failed to fetch VM offers. Please try again.');
@@ -178,14 +178,14 @@ const VMOffersPage = () => {
   };
   
   // Handle action from menu
-  const handleAction = async (action) => {
+  const handleAction = async (action,id) => {
     handleMenuClose();
-    
-    if (!menuOfferId) return;
+     console.log(id);
+    if (!id) return;
     
     try {
       // Get the selected VM offer
-      const offerData = vmOffers.find(offer => offer.id === menuOfferId);
+      const offerData = vmOffers.find(offer => offer.id === id);
       
       if (!offerData) {
         showSnackbar('VM offer not found.', 'error');
@@ -196,13 +196,14 @@ const VMOffersPage = () => {
       
       switch (action) {
         case 'edit':
+          console.log("edit vm offer");
           // Populate form with offer data
           setFormData({
             name: offerData.name || '',
             description: offerData.description || '',
             cpu_count: offerData.cpu_count || 1,
             memory_size_mib: offerData.memory_size_mib || 1024,
-            disk_size_mib: offerData.disk_size_mib || 10240,
+            disk_size_gb: offerData.disk_size_gb || 10,
             price_per_hour: offerData.price_per_hour || 0.00
           });
           setEditDialogOpen(true);
@@ -227,7 +228,7 @@ const VMOffersPage = () => {
       description: '',
       cpu_count: 1,
       memory_size_mib: 1024, // 1 GB
-      disk_size_mib: 10240, // 10 GB
+      disk_size_gb: 10, // 10 GB
       price_per_hour: 0.00
     });
     setFormErrors({});
@@ -242,7 +243,7 @@ const VMOffersPage = () => {
     const parsedValue = 
       name === 'cpu_count' || 
       name === 'memory_size_mib' || 
-      name === 'disk_size_mib' || 
+      name === 'disk_size_gb' || 
       name === 'price_per_hour' 
         ? parseFloat(value) 
         : value;
@@ -277,8 +278,8 @@ const VMOffersPage = () => {
       errors.memory_size_mib = 'Memory must be at least 512 MiB';
     }
     
-    if (formData.disk_size_mib < 1024) {
-      errors.disk_size_mib = 'Disk size must be at least 1 GiB (1024 MiB)';
+    if (formData.disk_size_gb <= 0) {
+      errors.disk_size_gb = 'Disk size must be at least 1 GiB (1024 MiB)';
     }
     
     if (formData.price_per_hour < 0) {
@@ -453,7 +454,7 @@ const VMOffersPage = () => {
                 <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
                   <StorageIcon color="primary" sx={{ mr: 1 }} />
                   <Typography variant="body1">
-                    {mibToGib(offer.disk_size_mib)} GB Storage
+                    {offer.disk_size_gb} GB Storage
                   </Typography>
                 </Box>
                 
@@ -473,7 +474,10 @@ const VMOffersPage = () => {
                 <Button 
                   size="small" 
                   startIcon={<EditIcon />}
-                  onClick={() => handleAction('edit', offer.id)}
+                  onClick={() =>{
+                    console.log(offer.id);
+                    handleAction('edit', offer.id);
+                  } }
                 >
                   Edit
                 </Button>
@@ -537,7 +541,7 @@ const VMOffersPage = () => {
                 <TableCell>
                   <Box sx={{ display: 'flex', alignItems: 'center' }}>
                     <StorageIcon fontSize="small" sx={{ mr: 1, color: theme.palette.primary.main }} />
-                    {mibToGib(offer.disk_size_mib)} GB
+                    {offer.disk_size_gb} GB
                   </Box>
                 </TableCell>
                 <TableCell>
@@ -803,10 +807,10 @@ const VMOffersPage = () => {
             
             <Grid item xs={12} sm={4}>
               <TextField
-                name="disk_size_mib"
-                label="Disk Size (MiB)"
+                name="disk_size_gb"
+                label="Disk Size (GiB)"
                 type="number"
-                value={formData.disk_size_mib}
+                value={formData.disk_size_gb}
                 onChange={handleInputChange}
                 fullWidth
                 required
@@ -816,10 +820,10 @@ const VMOffersPage = () => {
                       <StorageIcon />
                     </InputAdornment>
                   ),
-                  inputProps: { min: 1024, step: 1024 }
+                  inputProps: { min: 1, step: 1 }
                 }}
-                error={Boolean(formErrors.disk_size_mib)}
-                helperText={formErrors.disk_size_mib || '1024 MiB = 1 GiB'}
+                error={Boolean(formErrors.disk_size_gb)}
+                helperText={formErrors.disk_size_gb || '1 GiB = 1024 MiB'}
               />
             </Grid>
             
@@ -884,7 +888,7 @@ const VMOffersPage = () => {
                 <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1, mt: 1 }}>
                   <Chip icon={<DnsIcon />} label={`${formData.cpu_count} CPU Cores`} />
                   <Chip icon={<MemoryIcon />} label={`${mibToGib(formData.memory_size_mib)} GB RAM`} />
-                  <Chip icon={<StorageIcon />} label={`${mibToGib(formData.disk_size_mib)} GB Storage`} />
+                  <Chip icon={<StorageIcon />} label={`${formData.disk_size_gb} GB Storage`} />
                   <Chip icon={<MoneyIcon />} label={`${formatPrice(formData.price_per_hour)}/hour`} />
                 </Box>
               </Paper>
@@ -996,10 +1000,10 @@ const VMOffersPage = () => {
             
             <Grid item xs={12} sm={4}>
               <TextField
-                name="disk_size_mib"
-                label="Disk Size (MiB)"
+                name="disk_size_gb"
+                label="Disk Size (GiB)"
                 type="number"
-                value={formData.disk_size_mib}
+                value={formData.disk_size_gb}
                 onChange={handleInputChange}
                 fullWidth
                 required
@@ -1009,10 +1013,10 @@ const VMOffersPage = () => {
                       <StorageIcon />
                     </InputAdornment>
                   ),
-                  inputProps: { min: 1024, step: 1024 }
+                  inputProps: { min: 1, step: 1 }
                 }}
-                error={Boolean(formErrors.disk_size_mib)}
-                helperText={formErrors.disk_size_mib || '1024 MiB = 1 GiB'}
+                error={Boolean(formErrors.disk_size_gb)}
+                helperText={formErrors.disk_size_gb || '1024 MiB = 1 GiB'}
               />
             </Grid>
             

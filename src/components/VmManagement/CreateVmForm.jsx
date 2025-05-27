@@ -37,7 +37,7 @@ import {
 } from '@mui/icons-material';
 
 // Import API functions
-import { createVm } from '../../api/vm-host-backend';
+import { createVm,getVms } from '../../api/vm-host-backend';
 import { getVmOffers, getActiveVmOffers } from '../../api/vm-offer-backend';
 import { getSystemImages } from '../../api/system-images-backend';
 import { getClusters, getAvailableClusters } from '../../api/cluster-service-backend';
@@ -76,6 +76,8 @@ const CreateVmForm = () => {
 
   // State for lists of data
   const [vmOffers, setVmOffers] = useState([]);
+  const [vms, setVms] = useState([]);
+
   const [systemImages, setSystemImages] = useState([]);
   const [clusters, setClusters] = useState([]);
 
@@ -109,24 +111,27 @@ const CreateVmForm = () => {
       // Fetch current user
       const userData = await getLoggedInUser();
       if (userData) {
+        console.log(userData);
         setCurrentUser(userData);
         setFormData(prev => ({ ...prev, user_id: userData.id }));
       }
 
       // Fetch active VM offers
       const offersData = await getActiveVmOffers();
-      if (offersData && offersData.data) {
-        setVmOffers(offersData.data);
+      console.log(offersData);
+      if (offersData) {
+        setVmOffers(offersData);
       }
 
       // Fetch system images
       const imagesData = await getSystemImages();
-      if (imagesData && imagesData.data) {
-        setSystemImages(imagesData.data);
+      if (imagesData) {
+        setSystemImages(imagesData);
       }
 
       // Fetch available clusters
       const clustersData = await getAvailableClusters();
+      console.log(clustersData);
       if (clustersData) {
         setClusters(clustersData);
       }
@@ -168,7 +173,7 @@ const CreateVmForm = () => {
         vm_offer_id: offerId,
         cpu_count: offer.cpu_count,
         memory_size_mib: offer.memory_size_mib,
-        disk_size_gb: Math.floor(offer.disk_size_mib / 1024) // Convert MiB to GB
+        disk_size_gb: Math.floor(offer.disk_size_gb) // Convert MiB to GB
       });
     }
   };
@@ -409,7 +414,7 @@ const CreateVmForm = () => {
               >
                 {vmOffers.map((offer) => (
                   <MenuItem key={offer.id} value={offer.id}>
-                    {offer.name} ({offer.cpu_count} CPU, {mibToGib(offer.memory_size_mib)} GB RAM, {mibToGib(offer.disk_size_mib)} GB Storage)
+                    {offer.name} ({offer.cpu_count} CPU, {mibToGib(offer.memory_size_mib)} GB RAM, {offer.disk_size_gb} GB Storage)
                   </MenuItem>
                 ))}
               </Select>

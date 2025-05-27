@@ -1,6 +1,6 @@
 import axios from 'axios';
 
-const SERVICE_NAME = 'SERVICE-VM-OFFER';
+const SERVICE_NAME = 'SERVICE-VM-OFFER/api';
 
 
 export const getVmOffers = async()=>{
@@ -10,10 +10,10 @@ export const getVmOffers = async()=>{
      if (res.status !== 200){
         return console.log(`Failed to fetch vm offers error code ${res.status}`);
     }
-
+    console.log(res);
     const resData = await res.data;
 
-    return resData;
+    return resData.data.data.vm_offers;
 }
 
 
@@ -25,7 +25,7 @@ export const createVmOffer = async(data)=>{
             description: data.description,
             cpu_count: data.cpu_count,
             memory_size_mib: data.memory_size_mib,
-            disk_size_mib: data.disk_size_mib,
+            disk_size_gb: data.disk_size_gb,
             price_per_hour: data.price_per_hour
 
         }
@@ -74,7 +74,7 @@ export const deleteVmOffer = async(vm_offer_id)=>{
 
 export const updateVmOffer = async(vm_offer_id,data)=>{
 
-    const res = await axios.patch(`/${SERVICE_NAME}/vm-offers/${vm_offer_id}`,
+    const res = await axios.put(`/${SERVICE_NAME}/vm-offers/${vm_offer_id}`,
         {
             name: data.name,
             description: data.description,
@@ -114,21 +114,22 @@ export const searchVmOffer = async(name)=>{
 
 export const getActiveVmOffers = async()=>{
 
-    const res = await axios.get(`/${SERVICE_NAME}/vm-offers/active/`).catch((err)=>console.log(err));
-
+    const res = await axios.get(`/${SERVICE_NAME}/vm-offers/active`).catch((err)=>console.log(err));
+     
+    console.log(res.data.data.data);
      if (res.status !== 200){
         return console.log(`Failed to fetch active vm offers error code ${res.status}`);
     }
 
     const resData = await res.data;
 
-    return resData;
+    return resData.data.data.offers;
 }
 
 
 
 export const getVmOfferHealthCheck = async()=>{
-     const res = await axios.get(`/${SERVICE_NAME}/health`).
+     const res = await axios.get(`/${SERVICE_NAME}/service-vm-offer/health`).
      catch((err)=>console.log(err));
 
 

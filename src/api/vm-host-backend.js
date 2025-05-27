@@ -1,7 +1,7 @@
 import axios from 'axios';
 
 const SERVICE_NAME = 'SERVICE-VM-HOST';
-
+const VM_URI = 'api/service-vm-host';
 
 export const getVmHostHealthCheck = async()=>{
 
@@ -21,25 +21,43 @@ export const getVmHostHealthCheck = async()=>{
 
 export const getVms = async()=>{
 
-    const res = await axios.get(`/${SERVICE_NAME}/vms`).catch((err)=>console.log(err));
+    const res = await axios.get(`/${SERVICE_NAME}/${VM_URI}/vms`).catch((err)=>console.log(err));
 
      if (res.status !== 200){
         return console.log(`Failed to fetch vms error code ${res.status}`);
     }
-
+    
+    console.log(res.data.data.data.vms);
     const resData = await res.data;
 
-    return resData;
+    return resData.data.data.vms;
 }
 
 
 
 export const createVm = async(data)=>{
 
-    const res = await axios.post(`/${SERVICE_NAME}/vm/create`,
+    console.log( {
+        name: data.name,
+        user_id: `${data.user_id}`,
+        service_cluster_id: data.service_cluster_id,
+        cpu_count: data.cpu_count,
+        memory_size_mib: data.memory_size_mib,
+        disk_size_gb: data.disk_size_gb,
+        os_type: data.os_type,
+        ssh_public_key: data.ssh_public_key,
+        root_password: data.root_password,
+        tap_device: data.tap_device,
+        tap_ip: data.tap_ip,
+        vm_ip: data.vm_ip,
+        vm_mac: data.vm_mac,
+        vm_offer_id: data.vm_offer_id,
+        system_image_id: data.system_image_id
+    });
+    const res = await axios.post(`/${SERVICE_NAME}/${VM_URI}/vm/create`,
     {
         name: data.name,
-        user_id: data.user_id,
+        user_id: `${data.user_id}`,
         service_cluster_id: data.service_cluster_id,
         cpu_count: data.cpu_count,
         memory_size_mib: data.memory_size_mib,
@@ -70,7 +88,7 @@ export const createVm = async(data)=>{
 
 export const startVm = async(data)=>{
 
-    const res = await axios.post(`/${SERVICE_NAME}/vm/start`,
+    const res = await axios.post(`/${SERVICE_NAME}/${VM_URI}/vm/start`,
         {
             name: data.name,
             user_id: data.user_id,
@@ -99,7 +117,7 @@ export const startVm = async(data)=>{
 
 export const stopVm = async(data)=>{
 
-    const res = await axios.post(`/${SERVICE_NAME}/vm/stop`,
+    const res = await axios.post(`/${SERVICE_NAME}/${VM_URI}/vm/stop`,
         {
             name: data.name,
             user_id: data.user_id,
@@ -122,7 +140,7 @@ export const stopVm = async(data)=>{
 
 export const deleteVm = async(data)=>{
 
-    const res = await axios.post(`/${SERVICE_NAME}/vm/delete`,
+    const res = await axios.post(`/${SERVICE_NAME}/${VM_URI}/vm/delete`,
         {
             name: data.name,
             user_id: data.user_id,
@@ -145,7 +163,7 @@ export const deleteVm = async(data)=>{
 
 export const statusVm = async(data)=>{
 
-    const res = await axios.post(`/${SERVICE_NAME}/vm/status`,
+    const res = await axios.post(`/${SERVICE_NAME}/${VM_URI}/vm/status`,
         {
             name: data.name,
             user_id: data.user_id
@@ -167,7 +185,7 @@ export const statusVm = async(data)=>{
 
 export const getVmMetrics = async(user_id,vm_name)=>{
 
-    const res = await axios.get(`/${SERVICE_NAME}/vm/${user_id}/${vm_name}/metrics`).catch((err)=>console.log(err));
+    const res = await axios.get(`/${SERVICE_NAME}/${VM_URI}/vm/${user_id}/${vm_name}/metrics`).catch((err)=>console.log(err));
 
 
     if (res.status !== 200){

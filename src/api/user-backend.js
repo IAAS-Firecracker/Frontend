@@ -102,7 +102,7 @@ export const getLoggedInUser = async ()=>{
         return console.log("Unable to fetch users");
     }
 
-    const data =  res.data;
+    const data =  res.data.data;
 
     return data;
 }

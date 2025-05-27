@@ -71,7 +71,7 @@ const OS_TYPES = [
 ];
 
 // Default image when no image is available
-const DEFAULT_IMAGE = 'https://via.placeholder.com/150?text=No+Image';
+const DEFAULT_IMAGE = 'https://th.bing.com/th?q=Ubuntu+Modern+Logo&w=40&h=40&c=1&rs=1&qlt=90&cb=1&pid=InlineBlock&mkt=en-WW&cc=CM&setlang=en&adlt=moderate&t=1&mw=247';
 
 const SystemImagesManager = () => {
   const theme = useTheme();
@@ -94,7 +94,7 @@ const SystemImagesManager = () => {
     os_type: 'linux',
     version: '',
     description: '',
-    image: ''
+    image: null
   });
   
   // File upload state
@@ -159,6 +159,7 @@ const SystemImagesManager = () => {
     
     try {
       const data = await getSystemImageByOsType(osType);
+      console.log(data);
       if (data) {
         setSystemImages(data);
       }
@@ -214,6 +215,7 @@ const SystemImagesManager = () => {
     setError(null);
     
     try {
+      console.log(id);
       const data = await getSystemImageByid(id);
       if (data) {
         setSelectedImage(data);
@@ -243,6 +245,7 @@ const SystemImagesManager = () => {
     
     try {
       const data = await getSystemImageByid(id);
+      console.log(data);
       if (data) {
         setSelectedImage(data);
         setDialogMode('view');
@@ -290,7 +293,7 @@ const SystemImagesManager = () => {
       // and get back a URL to use in the form
       setFormData({
         ...formData,
-        image: 'uploaded_image_url_placeholder' // This would be replaced with the actual URL from your server
+        image: file // This would be replaced with the actual URL from your server
       });
     }
   };
@@ -367,7 +370,7 @@ const SystemImagesManager = () => {
   const renderOsTypeChip = (osType) => {
     let color;
     let label = osType;
-    
+    console.log(osType);
     switch (osType.toLowerCase()) {
       case 'linux':
         color = 'success';
@@ -579,7 +582,8 @@ const SystemImagesManager = () => {
                       <IconButton 
                         size="small" 
                         color="primary"
-                        onClick={() => handleOpenEditDialog(image.id)}
+                        onClick={() =>{ console.log(image.id);
+                          handleOpenEditDialog(image.id)}}
                       >
                         <EditIcon fontSize="small" />
                       </IconButton>

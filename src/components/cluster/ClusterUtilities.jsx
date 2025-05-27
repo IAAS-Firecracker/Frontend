@@ -235,11 +235,12 @@ const ClusterUtilities = () => {
 
     // Mock infoData structure for visualization
     // Replace with actual data structure from your API
+    //console.log(availableClusters);
     const info = {
       version: infoData.version || 'v1.0.0',
       uptime: infoData.uptime || '10 days, 5 hours',
       totalClusters: infoData.total_clusters || availableClusters.length || 0,
-      activeClusters: infoData.active_clusters || availableClusters.filter(c => c.status === 'active').length || 0,
+      activeClusters: infoData.active_clusters || availableClusters?.filter(c => c.status === 'active').length || 0,
       totalVMs: infoData.total_vms || 24,
       runningVMs: infoData.running_vms || 18,
       totalStorage: infoData.total_storage || 2048, // GB
@@ -378,6 +379,7 @@ const ClusterUtilities = () => {
               <TableRow>
                 <TableCell>Cluster Name</TableCell>
                 <TableCell>IP Address</TableCell>
+                <TableCell>Processor</TableCell>
                 <TableCell>CPU Available</TableCell>
                 <TableCell>RAM Available</TableCell>
                 <TableCell>Storage Available</TableCell>
@@ -399,6 +401,8 @@ const ClusterUtilities = () => {
                   cluster.rom, 
                   cluster.available_rom
                 );
+
+                const processor = cluster.processeur;
                 
                 return (
                   <TableRow key={cluster.id}>
@@ -408,6 +412,7 @@ const ClusterUtilities = () => {
                       </Typography>
                     </TableCell>
                     <TableCell>{cluster.ip}</TableCell>
+                     <TableCell>{processor}</TableCell>
                     <TableCell>
                       <Box sx={{ display: 'flex', alignItems: 'center' }}>
                         <Box sx={{ width: '100%', mr: 1 }}>
