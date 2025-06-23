@@ -17,6 +17,8 @@ import Footer from './components/layout/Footer';
 import { authActions } from './store';
 import { useDispatch, useSelector } from 'react-redux';
 import { useEffect } from 'react';
+import ProfilePage from './components/auth/ProfilePageForm';
+import ResetPasswordPage from './pages/ResetPasswordPage';
 
 //import ProtectedRoute from './components/auth/ProtectedRoute';
 
@@ -54,6 +56,7 @@ console.log(localStorage.getItem('iaas-admin'));
           <Routes>
             <Route path="/" element={<HomePage />} />
             <Route path="/login" element={<LoginPage />} />
+            <Route path="/forgot-password" element={<ResetPasswordPage />} />
             <Route path="/signup" element={<SignupPage />} />
             { isLoggedIn && <>
             <Route
@@ -63,6 +66,10 @@ console.log(localStorage.getItem('iaas-admin'));
             <Route
               path="/vms"
               element={<VmManagementPage />}
+            />
+            <Route
+              path="/profile"
+              element={<ProfilePage />}
             />
             </>}
 

@@ -81,6 +81,10 @@ const Header = () => {
     navigate('/login');
   };
 
+  const handleUserProfile = () => {
+    navigate('/profile');
+  };
+
   const username = localStorage.getItem('iaas-username') || 'Anonymous';
   const email = localStorage.getItem('iaas-email') || false;
 
@@ -336,19 +340,19 @@ const Header = () => {
         </Box>
         <Divider />
         { isLoggedIn && (
-        <MenuItem sx={{ gap: 1.5 }}>
+        <MenuItem onClick={handleUserProfile} sx={{ gap: 1.5 }}>
           <ListItemIcon>
             <Person fontSize="small" />
           </ListItemIcon>
           Profile
         </MenuItem>)}
 
-         { isLoggedIn && (<MenuItem sx={{ gap: 1.5 }}>
+         {/* { isLoggedIn && (<MenuItem sx={{ gap: 1.5 }}>
           <ListItemIcon>
             <AccountCircle fontSize="small" />
           </ListItemIcon>
           My account
-        </MenuItem>)}
+        </MenuItem>)} */}
         <Divider />
         { isLoggedIn && ( <MenuItem sx={{ gap: 1.5 }}>
           <ListItemIcon>

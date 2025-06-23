@@ -48,7 +48,7 @@ const LoginForm = () => {
     setShowPassword(!showPassword);
   };
 
-  const onResponseReceived = (data)=>{
+  const onResponseReceived = (data)=> {
     console.log(data);
     localStorage.setItem('iaas-userId',data.user.id);
     localStorage.setItem('iaas-token',data.token);

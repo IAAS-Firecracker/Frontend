@@ -10,7 +10,6 @@ export const login = async (data)=>{
         
     }).catch((err)=>console.log(err));
 
-
     if (res.status !== 200 && res.status !== 201){
         return console.log(`Unable to authenticate ${res.status}`);
     }
@@ -28,8 +27,7 @@ export const register = async (data)=>{
         password: data.password
         
     }).catch((err)=>console.log(err));
-
-
+    
     if (res.status !== 200 && res.status !== 201){
         return console.log(`Unable to authenticate ${res.status}`);
     }
@@ -109,8 +107,7 @@ export const getLoggedInUser = async ()=>{
 
 
 
-// Add these to your user-backend.js file
-
+// User management routes
 export const updateUser = async (userId, data) => {
   const res = await axios.patch(`/${SERVICE_NAME}/api/users/${userId}`, {
     name: data.name,
@@ -139,18 +136,96 @@ export const deleteUser = async (userId) => {
   return resData;
 };
 
-export const resetUserPassword = async (userId, data) => {
-  const res = await axios.post(`/${SERVICE_NAME}/api/users/${userId}/reset-password`, {
-    password: data.password
+// USER PROFILE ROUTES
+export const updateProfile = async (data) => {
+  const res = await axios.patch(`/${SERVICE_NAME}/api/users/update-profile`, {
+    name: data.name,
+    email: data.email,
   }).catch((err) => console.log(err));
 
   if (res.status !== 200) {
-    return console.log(`Failed to reset password for user ${userId} error code ${res.status}`);
+    return console.log(`Failed to update your profile. Error code ${res.status}`);
   }
 
   const resData = await res.data;
   return resData;
 };
+
+export const deleteProfile = async () => {
+  const res = await axios.delete(`/${SERVICE_NAME}/api/users/delete-profile`)
+    .catch((err) => console.log(err));
+
+  if (res.status !== 200) {
+    return console.log(`Failed to delete your profile. Error code ${res.status}`);
+  }
+
+  const resData = await res.data;
+  return resData;
+};
+
+export const changeUserPassword = async (data) => {
+  const res = await axios.patch(`/${SERVICE_NAME}/api/users/change-password`, {
+    password: data.password,
+    newPassword: data.newPassword
+  })
+    .catch((err) => console.log(err));
+
+  if (res.status !== 200) {
+    return console.log(`Failed to change user password. Error code ${res.status}`);
+  }
+
+  const resData = await res.data;
+  return resData;
+};
+
+// PASSWORD RESET ROUTES
+export const sendResetCode = async (data) => {
+  try
+  {
+      const res = await axios.post(`/api/send-reset-code`, {
+        email: data.email
+      })
+    
+      if (res.status !== 200) {
+        return console.log(`Failed to send code to email ${data.email} error code ${res.status}`);
+      }
+    
+      return res;
+  } catch (err) {
+      console.log("RESULT", err);
+      return err;
+  }
+};
+
+export const verifyResetCode = async (data) => {
+  const res = await axios.post(`/api/verify-code`, {
+    email: data.email,
+    code: data.code
+  }).catch((err) => console.log(err));
+
+  if (res.status !== 200) {
+    return console.log(`Failed to verify code sent to your email ${data.email} error code ${res.status}`);
+  }
+
+  const resData = await res.data;
+  return resData;
+};
+
+export const resetUserPassword = async (data) => {
+  const res = await axios.post(`/api/reset-password`, {
+    email: data.email,
+    code: data.code,
+    newPassword: data.newPassword,
+  }).catch((err) => console.log(err));
+
+  if (res.status !== 200) {
+    return console.log(`Failed to reset password for user email ${data.email} error code ${res.status}`);
+  }
+
+  const resData = await res.data;
+  return resData;
+};
+
 
 
 

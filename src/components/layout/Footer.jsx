@@ -28,6 +28,7 @@ const Footer = () => {
       component="footer"
       sx={{
         py: 6,
+        mt: 6,
         backgroundColor: theme.palette.background.paper,
         borderTop: `1px solid ${theme.palette.divider}`,
         color: theme.palette.text.secondary
