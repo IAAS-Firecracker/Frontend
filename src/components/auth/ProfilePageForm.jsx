@@ -57,7 +57,15 @@ const ProfilePage = () => {
     setLoading(true);
     try {
       const updatedProfile = await updateProfile(editData);
-      setUser(updatedProfile);
+      console.log("UPDATED PROFILE", updatedProfile);
+
+      const editedName = updatedProfile.data.user.name;
+      const editedEmail = updatedProfile.data.user.email;
+      setUser({ name: editedName, email: editedEmail });
+
+      localStorage.setItem('iaas-email', editedEmail);
+      localStorage.setItem('iaas-username', editedName);
+
       setPopupMessage('Profile updated successfully!');
     } catch (err) {
       setError('Failed to update profile. Please try again.');
