@@ -2,21 +2,22 @@ import axios from 'axios';
 
 const SERVICE_NAME = 'USER-SERVICE';
 
-export const login = async (data)=>{
+export const login = async (data) => {
+  try {
+    const res = await axios.post('/api/login', {
+      email: data.email,
+      password: data.password
+    });
 
-    const res = await axios.post('/api/login',{
-        email: data.email,
-        password: data.password
-        
-    }).catch((err)=>console.log(err));
-
-    if (res.status !== 200 && res.status !== 201){
-        return console.log(`Unable to authenticate ${res.status}`);
+    if (res.status !== 200 && res.status !== 201) {
+      throw new Error(`Unable to authenticate. Status code: ${res.status}`);
     }
 
-    const resData = await res.data;
-
-    return resData;
+    return res.data;
+  } catch (err) {
+    //console.error('Login API error:', err);
+    throw err;
+  }
 }
 
 export const register = async (data)=>{
@@ -26,7 +27,7 @@ export const register = async (data)=>{
         email: data.email,
         password: data.password
         
-    }).catch((err)=>console.log(err));
+    }).catch((err)=>{ console.log(err); return err;});
     
     if (res.status !== 200 && res.status !== 201){
         return console.log(`Unable to authenticate ${res.status}`);
@@ -138,12 +139,12 @@ export const deleteUser = async (userId) => {
 
 // USER PROFILE ROUTES
 export const updateProfile = async (data) => {
-  const res = await axios.patch(`/${SERVICE_NAME}/api/users/update-profile`, {
+  const res = await axios.patch(`/${SERVICE_NAME}/api/users/current/update-profile`, {
     name: data.name,
     email: data.email,
   }).catch((err) => console.log(err));
 
-  if (res.status !== 200) {
+  if (res.status !== 200 && res.status !== 201) {
     return console.log(`Failed to update your profile. Error code ${res.status}`);
   }
 
@@ -152,10 +153,10 @@ export const updateProfile = async (data) => {
 };
 
 export const deleteProfile = async () => {
-  const res = await axios.delete(`/${SERVICE_NAME}/api/users/delete-profile`)
+  const res = await axios.delete(`/${SERVICE_NAME}/api/users/current/delete-profile`)
     .catch((err) => console.log(err));
 
-  if (res.status !== 200) {
+  if (res.status !== 200 && res.status !== 201) {
     return console.log(`Failed to delete your profile. Error code ${res.status}`);
   }
 
@@ -164,13 +165,13 @@ export const deleteProfile = async () => {
 };
 
 export const changeUserPassword = async (data) => {
-  const res = await axios.patch(`/${SERVICE_NAME}/api/users/change-password`, {
+  const res = await axios.patch(`/${SERVICE_NAME}/api/users/current/change-password`, {
     password: data.password,
     newPassword: data.newPassword
   })
     .catch((err) => console.log(err));
 
-  if (res.status !== 200) {
+  if (res.status !== 200 && res.status !== 201) {
     return console.log(`Failed to change user password. Error code ${res.status}`);
   }
 

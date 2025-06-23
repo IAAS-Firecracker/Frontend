@@ -50,12 +50,15 @@ const LoginForm = () => {
 
   const onResponseReceived = (data)=> {
     console.log(data);
+    if(data)
     localStorage.setItem('iaas-userId',data.user.id);
     localStorage.setItem('iaas-token',data.token);
     localStorage.setItem('iaas-email',data.user.email);
     localStorage.setItem('iaas-username', data.user.name);
 
     localStorage.setItem('iaas-admin', data.user.role === 'admin');
+
+    setIsAuthenticated(true);
 
     dispatch(authActions.login());
     if(data.user.role === 'admin'){
@@ -97,17 +100,15 @@ const LoginForm = () => {
       setLoading(true);
       
       try {
-        // Simulate API call
-        login({email:email, password: password}).then(onResponseReceived).catch(setError(e)).finally(()=>setLoading(false));
-
-        console.log('Login submitted:', { email, password, rememberMe });
-        
-        // Simulate successful login
-        setIsAuthenticated(true);
-        
+        const response = await login({ email, password });
+        onResponseReceived(response);
       } catch (err) {
-        console.error('Login error:', err);
-        setError('Invalid email or password. Please try again.');
+        //console.error('Login error:', err);
+        if (err.response && err.response.status === 401) {
+          setError('Incorrect password. Please try again.');
+        } else {
+          setError('An error occurred during login. Please try again later.');
+        }
       } finally {
         setLoading(false);
       }

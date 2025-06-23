@@ -22,7 +22,7 @@ const ProfilePage = () => {
   const theme = useTheme();
   const [tabIndex, setTabIndex] = useState(0);
   const [user, setUser] = useState({ name: 'John Doe', email: 'john.doe@example.com' });
-  const [editData, setEditData] = useState({ name: user.name, email: user.email });
+  const [editData, setEditData] = useState(null);
   const [passwordData, setPasswordData] = useState({ currentPassword: '', newPassword: '' });
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
@@ -82,6 +82,8 @@ const ProfilePage = () => {
         newPassword: passwordData.newPassword
       });
       setPopupMessage('Password changed successfully!');
+      setTabIndex(0);
+      setPasswordData({ currentPassword: '', newPassword: '' });
     } catch (err) {
       setError('Failed to change password. Please try again.');
     } finally {
