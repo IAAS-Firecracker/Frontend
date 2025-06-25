@@ -52,7 +52,7 @@ function Sidebar({ open, toggleDrawer }) {
   const mainNavItems = [
     { name: "Home", icon: <HomeIcon />, route: '/' },
     { name: "Dashboard", icon: <DashboardIcon />, route: '/dashboard' },
-    { name: "Profile", icon: <ManageAccountsIcon />, route: '/auth' },
+    { name: "Profile", icon: <ManageAccountsIcon />, route: '/profile' },
     { name: "Cart", icon: <ShoppingCartIcon />, route: '/cart' },
     { name: "Payments", icon: <PaymentIcon />, route: '/payments' },
   ];

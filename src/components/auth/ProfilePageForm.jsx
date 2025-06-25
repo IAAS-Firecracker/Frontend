@@ -27,6 +27,7 @@ const ProfilePage = () => {
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const [popupMessage, setPopupMessage] = useState('');
+  const [deleteConfirmationOpen, setDeleteConfirmationOpen] = useState(false);
 
   const handleTabChange = (event, newValue) => {
     setTabIndex(newValue);
@@ -99,6 +100,24 @@ const ProfilePage = () => {
     }
   };
 
+  const handleDeleteProfile = () => {
+    setDeleteConfirmationOpen(true);
+  };
+
+  const confirmDeleteProfile = async () => {
+    setDeleteConfirmationOpen(false);
+    setLoading(true);
+    try {
+      // Call delete profile API here
+      console.log('Profile deleted successfully');
+      setPopupMessage('Profile deleted successfully!');
+    } catch (err) {
+      setError('Failed to delete profile. Please try again.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
     <>
       <Paper elevation={3} sx={{ p: 3, borderRadius: 2, maxWidth: 600, mx: 'auto', mt: 6 }}>
@@ -123,10 +142,12 @@ const ProfilePage = () => {
             <Typography variant="h6">Email: {user.email}</Typography>
 
             <Button
-              type="submit"
+              type="button"
               variant="contained"
               disabled={loading}
-              sx={{ mt: 4, width: "50%", backgroundColor: 'red', '&:hover': { backgroundColor: 'darkred' }}}
+              onClick={handleDeleteProfile}
+              sx={{ mt: 4, width: "50%" }}
+              color='error'
             >
               {loading ? <CircularProgress size={24} /> : 'Delete Profile'}
             </Button>
@@ -205,6 +226,17 @@ const ProfilePage = () => {
         </DialogContent>
         <DialogActions>
           <Button onClick={handleClosePopup} variant="contained">Close</Button>
+        </DialogActions>
+      </Dialog>
+
+      <Dialog open={deleteConfirmationOpen} onClose={() => setDeleteConfirmationOpen(false)}>
+        <DialogTitle>Confirm Delete</DialogTitle>
+        <DialogContent>
+          <Typography>Are you sure you want to delete your profile? This action cannot be undone.</Typography>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setDeleteConfirmationOpen(false)} variant="outlined">Cancel</Button>
+          <Button onClick={confirmDeleteProfile} variant="contained" color="error">Delete</Button>
         </DialogActions>
       </Dialog>
     </>
