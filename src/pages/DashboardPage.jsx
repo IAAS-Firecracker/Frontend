@@ -77,6 +77,7 @@ import {
 // Import API functions
 import { getLoggedInUser } from '../api/user-backend';
 import { getVms, startVm, stopVm, deleteVm } from '../api/vm-host-backend';
+import { useNavigate } from 'react-router-dom';
 
 // StatsCard Component
 const StatsCard = ({ title, value, icon, color, secondaryValue, change }) => {
@@ -957,6 +958,7 @@ const DashboardPage = () => {
   const [vmLoading, setVmLoading] = useState(true);
   const [vms, setVms] = useState([]);
   const [showAllUsers, setShowAllUsers] = useState(false); // For admin to toggle between their VMs and all VMs
+  const navigate = useNavigate();
   
   // Fetch user data on component mount
   useEffect(() => {
@@ -990,10 +992,10 @@ const DashboardPage = () => {
   const fetchVms = async () => {
     setVmLoading(true);
     try {
-      const vmsData = await getVms();
+      console.log("VMS");
+      const vmsData = await getVms(); // Updated function call
+      console.log("VMS", vmsData);
       if (vmsData && vmsData.data) {
-        // If admin and showAllUsers is true, show all VMs
-        // Otherwise, filter to show only the current user's VMs
         const filteredVms = (userRole === 'admin' && showAllUsers)
           ? vmsData.data
           : vmsData.data.filter(vm => vm.user_id === currentUser.id);
@@ -1109,7 +1111,7 @@ const DashboardPage = () => {
       title: 'Create VM', 
       description: 'Launch a new virtual machine', 
       icon: <AddIcon />, 
-      onClick: () => console.log('Create VM') 
+      onClick: () => navigate("/vms")
     },
     { 
       title: 'Add Storage', 

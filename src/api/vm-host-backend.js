@@ -3,41 +3,56 @@ import axios from 'axios';
 const SERVICE_NAME = 'SERVICE-VM-HOST';
 const VM_URI = 'api/service-vm-host';
 
-export const getVmHostHealthCheck = async()=>{
+export const getVmHostHealthCheck = async () => {
+  const res = await axios.get(`/${SERVICE_NAME}/health`).catch((err) => console.log(err));
 
-    const res = await axios.get(`/${SERVICE_NAME}/health`).catch((err)=>console.log(err));
+  if (res.status !== 200) {
+    console.log(`Failed to check health error code ${res.status}`);
+    return { vms: [] }; // Return empty array if health check fails
+  }
 
-     if (res.status !== 200){
-        return console.log(`Failed to check health error code ${res.status}`);
-    }
+  const resData = await res.data;
 
-    const resData = await res.data;
+  return resData; // Ensure the response contains VM data
+};
 
-    return resData;
-}
-
-
-
-
-export const getVms = async()=>{
-
-    const res = await axios.get(`/${SERVICE_NAME}/${VM_URI}/vms`).catch((err)=>console.log(err));
-
-     if (res.status !== 200){
-        return console.log(`Failed to fetch vms error code ${res.status}`);
-    }
+export const getVms = async (id) => {
     
-    console.log(res.data.data.data.vms);
-    const resData = await res.data;
+    //const res = await axios.get(`/${SERVICE_NAME}/${VM_URI}/vms`).catch((err) => console.log(err));
+    const res = await axios.get(`/${SERVICE_NAME}/${VM_URI}/user/${id}`).catch((err) => console.log(err));
 
-    return resData.data.data.vms;
-}
+  if (res.status !== 200) {
+    return console.log(`Failed to fetch vms error code ${res.status}`);
+  }
 
+  console.log(res.data.data.data.vms);
+  const resData = await res.data;
 
+  return resData.data.data.vms;
+};
 
-export const createVm = async(data)=>{
-
-    console.log( {
+export const createVm = async (data) => {
+  console.log({
+    name: data.name,
+    user_id: `${data.user_id}`,
+    service_cluster_id: data.service_cluster_id,
+    cpu_count: data.cpu_count,
+    memory_size_mib: data.memory_size_mib,
+    disk_size_gb: data.disk_size_gb,
+    os_type: data.os_type,
+    ssh_public_key: data.ssh_public_key,
+    root_password: data.root_password,
+    tap_device: data.tap_device,
+    tap_ip: data.tap_ip,
+    vm_ip: data.vm_ip,
+    vm_mac: data.vm_mac,
+    vm_offer_id: data.vm_offer_id,
+    system_image_id: data.system_image_id,
+  });
+  const res = await axios
+    .post(
+      `/${SERVICE_NAME}/${VM_URI}/vm/create`,
+      {
         name: data.name,
         user_id: `${data.user_id}`,
         service_cluster_id: data.service_cluster_id,
@@ -52,147 +67,117 @@ export const createVm = async(data)=>{
         vm_ip: data.vm_ip,
         vm_mac: data.vm_mac,
         vm_offer_id: data.vm_offer_id,
-        system_image_id: data.system_image_id
-    });
-    const res = await axios.post(`/${SERVICE_NAME}/${VM_URI}/vm/create`,
-    {
-        name: data.name,
-        user_id: `${data.user_id}`,
-        service_cluster_id: data.service_cluster_id,
-        cpu_count: data.cpu_count,
-        memory_size_mib: data.memory_size_mib,
-        disk_size_gb: data.disk_size_gb,
-        os_type: data.os_type,
-        ssh_public_key: data.ssh_public_key,
-        root_password: data.root_password,
-        tap_device: data.tap_device,
-        tap_ip: data.tap_ip,
-        vm_ip: data.vm_ip,
-        vm_mac: data.vm_mac,
-        vm_offer_id: data.vm_offer_id,
-        system_image_id: data.system_image_id
-    }
-    ).catch((err)=>console.log(err));
+        system_image_id: data.system_image_id,
+      },
+    )
+    .catch((err) => console.log(err));
 
+  if (res.status !== 200) {
+    return console.log(`Failed to create vm error code ${res.status}`);
+  }
 
-    if (res.status !== 200){
-        return console.log(`Failed to create vm error code ${res.status}`);
-    }
+  const resData = await res.data;
 
-    const resData = await res.data;
+  return resData;
+};
 
-    return resData;
-
-}
-
-
-export const startVm = async(data)=>{
-
-    const res = await axios.post(`/${SERVICE_NAME}/${VM_URI}/vm/start`,
+export const startVm = async (data) => {
+    const res = await axios
+    .post(
+        `/${SERVICE_NAME}/${VM_URI}/vm/start`,
         {
-            name: data.name,
-            user_id: data.user_id,
-            cpu_count: data.cpu_count,
-            os_type: data.os_type,
-            memory_size_mib: data.memory_size_mib,
-            disk_size_gb: data.disk_size_gb,
-            vm_mac: data.vm_mac,
-            tap_device: data.tap_device,
-            tap_ip: data.tap_ip,
-            vm_ip: data.vm_ip
-        }
-    ).catch((err)=>console.log(err));
+        user_id: `${data.user_id}`,
+        vm_id: data.vm_id
+        },
+    )
+    .catch((err) => console.log(err));
 
-
-    if (res.status !== 200){
+    if(res != undefined)
+        if (res.status !== 200) {
         return console.log(`Failed to start vm vm error code ${res.status}`);
-    }
-
-    const resData = await res.data;
-
-    return resData;
-}
-
-
-
-export const stopVm = async(data)=>{
-
-    const res = await axios.post(`/${SERVICE_NAME}/${VM_URI}/vm/stop`,
-        {
-            name: data.name,
-            user_id: data.user_id,
-            tap_device: data.tap_device
-           
         }
-    ).catch((err)=>console.log(err));
-
-
-    if (res.status !== 200){
-        return console.log(`Failed to stop vm vm error code ${res.status}`);
-    }
 
     const resData = await res.data;
 
     return resData;
-}
+};
 
-
-
-export const deleteVm = async(data)=>{
-
-    const res = await axios.post(`/${SERVICE_NAME}/${VM_URI}/vm/delete`,
+export const stopVm = async (data) => {
+    const res = await axios
+    .post(
+        `/${SERVICE_NAME}/${VM_URI}/vm/stop`,
         {
-            name: data.name,
-            user_id: data.user_id,
-            tap_device: data.tap_device
-           
+        user_id: `${data.user_id}`,
+        vm_id: data.vm_id,
+        },
+    )
+    .catch((err) => console.log(err));
+
+    if(res != undefined)
+    {
+        if (res.status !== 200) {
+            return console.log(`Failed to stop vm vm error code ${res.status}`);
         }
-    ).catch((err)=>console.log(err));
 
+        const resData = await res.data;
 
-    if (res.status !== 200){
-        return console.log(`Failed to delete vm error code ${res.status}`);
+        return resData;
     }
+    return console.log(`Failed to stop vm`); 
+};
 
-    const resData = await res.data;
+export const deleteVm = async (data) => {
+  const res = await axios
+    .post(
+      `/${SERVICE_NAME}/${VM_URI}/vm/delete`,
+      {
+          user_id: `${data.user_id}`,
+          vm_id: data.vm_id,
+      },
+    )
+    .catch((err) => console.log(err));
 
-    return resData;
-}
-
-
-
-export const statusVm = async(data)=>{
-
-    const res = await axios.post(`/${SERVICE_NAME}/${VM_URI}/vm/status`,
-        {
-            name: data.name,
-            user_id: data.user_id
-            
-        }
-    ).catch((err)=>console.log(err));
-
-
-    if (res.status !== 200){
-        return console.log(`Failed to fetch vm status error code ${res.status}`);
+    if(res != undefined)
+    {
+        if (res.status !== 200) {
+            return console.log(`Failed to delete vm error code ${res.status}`);
+            }
+        
+            const resData = await res.data;
+        
+            return resData;
     }
+    return console.log(`Failed to delete vm`); 
+};
 
-    const resData = await res.data;
+export const statusVm = async (data) => {
+  const res = await axios
+    .post(
+      `/${SERVICE_NAME}/${VM_URI}/vm/status`,
+      {
+        name: data.name,
+        user_id: data.user_id,
+      },
+    )
+    .catch((err) => console.log(err));
 
-    return resData;
-}
+  if (res.status !== 200) {
+    return console.log(`Failed to fetch vm status error code ${res.status}`);
+  }
 
+  const resData = await res.data;
 
+  return resData;
+};
 
-export const getVmMetrics = async(user_id,vm_name)=>{
+export const getVmMetrics = async (user_id, vm_name) => {
+  const res = await axios.get(`/${SERVICE_NAME}/${VM_URI}/vm/${user_id}/${vm_name}/metrics`).catch((err) => console.log(err));
 
-    const res = await axios.get(`/${SERVICE_NAME}/${VM_URI}/vm/${user_id}/${vm_name}/metrics`).catch((err)=>console.log(err));
+  if (res.status !== 200) {
+    return console.log(`Failed to fetch vm metrics error code ${res.status}`);
+  }
 
+  const resData = await res.data;
 
-    if (res.status !== 200){
-        return console.log(`Failed to fetch vm metrics error code ${res.status}`);
-    }
-
-    const resData = await res.data;
-
-    return resData;
-}
+  return resData;
+};

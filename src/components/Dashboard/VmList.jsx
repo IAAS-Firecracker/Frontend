@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   Table,
   TableBody,
@@ -19,6 +19,7 @@ import {
   DeleteOutline as DeleteIcon,
   TerminalOutlined as ConsoleIcon,
 } from '@mui/icons-material';
+import { getVmHostHealthCheck } from '../../api/vm-host-backend'; // Import the function
 
 const statusColors = {
   running: 'success',
@@ -27,7 +28,18 @@ const statusColors = {
   creating: 'info',
 };
 
-const VmList = ({ vms }) => {
+const VmList = () => {
+  const [vms, setVms] = useState([]);
+
+  useEffect(() => {
+    const fetchVms = async () => {
+      const data = await getVmHostHealthCheck(); // Fetch VM data
+      console.log("DATAS", data);
+      setVms(data.vms || []); // Update state with fetched VMs
+    };
+    fetchVms();
+  }, []);
+
   const handleAction = (action, vmId) => {
     console.log(`Action: ${action} on VM ${vmId}`);
     // Implement API calls for VM actions

@@ -105,7 +105,7 @@ const VmActions = () => {
   
   // Filter VMs when search term changes
   useEffect(() => {
-    if (searchTerm === '') {
+    if (searchTerm.trim() === '') {
       setFilteredVms(vms);
     } else {
       const filtered = vms.filter(vm => 
@@ -115,6 +115,9 @@ const VmActions = () => {
     }
   }, [searchTerm, vms]);
   
+  useEffect(() => {
+    console.log("FILT", filteredVms);
+  }, [filteredVms]);
   // Fetch user and VMs
   const fetchUserAndVms = async () => {
     setLoading(true);
@@ -127,12 +130,13 @@ const VmActions = () => {
         setCurrentUser(userData);
         
         // Fetch VMs
-        const vmsData = await getVms();
-        if (vmsData && vmsData.data) {
+        const vmsData = await getVms(userData.id);
+
+        console.log("VMS", vmsData);
+        if (vmsData) {
           // Filter VMs for current user
-          const userVms = vmsData.data.filter(vm => vm.user_id === userData.id);
-          setVms(userVms);
-          setFilteredVms(userVms);
+          setVms(vmsData);
+          setFilteredVms(vmsData);
         }
       }
     } catch (err) {
@@ -195,6 +199,7 @@ const VmActions = () => {
         break;
       case 'stop':
         setConfirmStopOpen(true);
+        handleStopVm();
         break;
       case 'delete':
         setConfirmDeleteOpen(true);
@@ -212,16 +217,8 @@ const VmActions = () => {
     
     try {
       const response = await startVm({
-        name: vm.name,
         user_id: vm.user_id,
-        cpu_count: vm.cpu_count,
-        os_type: vm.os_type,
-        memory_size_mib: vm.memory_size_mib,
-        disk_size_gb: vm.disk_size_gb,
-        vm_mac: vm.vm_mac,
-        tap_device: vm.tap_device,
-        tap_ip: vm.tap_ip,
-        vm_ip: vm.vm_ip
+        vm_id: vm.id
       });
       
       if (response) {
@@ -251,9 +248,8 @@ const VmActions = () => {
     
     try {
       const response = await stopVm({
-        name: selectedVm.name,
         user_id: selectedVm.user_id,
-        tap_device: selectedVm.tap_device
+        vm_id: selectedVm.id
       });
       
       if (response) {
@@ -283,9 +279,8 @@ const VmActions = () => {
     
     try {
       const response = await deleteVm({
-        name: selectedVm.name,
-        user_id: selectedVm.user_id,
-        tap_device: selectedVm.tap_device
+        user_id: `${selectedVm.user_id}`,
+        vm_id: selectedVm.id
       });
       
       if (response) {
@@ -399,7 +394,8 @@ const VmActions = () => {
             <TableRow>
               <TableCell>Name</TableCell>
               <TableCell>Status</TableCell>
-              <TableCell>OS Type</TableCell>
+              {/* <TableCell>OS Type</TableCell> */}
+              <TableCell>Mac Address</TableCell>
               <TableCell>Resources</TableCell>
               <TableCell>IP Address</TableCell>
               <TableCell align="right">Actions</TableCell>
@@ -440,7 +436,7 @@ const VmActions = () => {
                   <TableCell>{renderStatusChip(vm.status)}</TableCell>
                   <TableCell>
                     <Chip 
-                      label={vm.os_type.toUpperCase()} 
+                      label={vm.mac_address} 
                       variant="outlined" 
                       size="small" 
                       color={vm.os_type === 'linux' ? 'success' : 'primary'}
@@ -451,7 +447,7 @@ const VmActions = () => {
                       <Tooltip title="CPU Cores">
                         <Box sx={{ display: 'flex', alignItems: 'center', mr: 2 }}>
                           <DnsIcon fontSize="small" sx={{ mr: 0.5, color: theme.palette.grey[600] }} />
-                          <Typography variant="body2">{vm.cpu_count}</Typography>
+                          <Typography variant="body2">{vm.vcpu_count}</Typography>
                         </Box>
                       </Tooltip>
                       
@@ -472,23 +468,35 @@ const VmActions = () => {
                   </TableCell>
                   <TableCell>
                     <Typography variant="body2">
-                      {vm.vm_ip || 'Not assigned'}
+                      {vm.ip_address || 'Not assigned'}
                     </Typography>
                   </TableCell>
                   <TableCell align="right">
                     <ButtonGroup variant="outlined" size="small">
-                      {vm.status === 'stopped' && (
-                        <Tooltip title="Start VM">
-                          <Button 
-                            color="success" 
-                            onClick={() => handleAction('start', vm)}
-                            disabled={actionLoading}
-                          >
-                            <StartIcon fontSize="small" />
-                          </Button>
-                        </Tooltip>
+                      {vm.status === 'stopped' || vm.status === 'created' && (
+                        <>
+                          <Tooltip title="Start VM">
+                            <Button 
+                              color="success" 
+                              onClick={() => handleAction('start', vm)}
+                              disabled={actionLoading}
+                            >
+                              <StartIcon fontSize="small" />
+                            </Button>
+                          </Tooltip>
+                          <Tooltip title="Stop VM">
+                            <Button 
+                              color="warning" 
+                              onClick={() => handleAction('stop', vm)}
+                              disabled={actionLoading}
+                              sx={{ borderRadius: "0", }}
+                            >
+                              <StopIcon fontSize="small" />
+                            </Button>
+                          </Tooltip>
+                        </>
                       )}
-                      
+
                       {vm.status === 'running' && (
                         <Tooltip title="Stop VM">
                           <Button 
@@ -609,7 +617,7 @@ const VmActions = () => {
                     </Grid>
                     <Grid item xs={8}>
                       <Chip 
-                        label={selectedVm.os_type.toUpperCase()} 
+                        label={selectedVm.os_type} 
                         variant="outlined" 
                         size="small" 
                         color={selectedVm.os_type === 'linux' ? 'success' : 'primary'}
