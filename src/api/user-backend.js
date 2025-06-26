@@ -4,7 +4,7 @@ const SERVICE_NAME = 'USER-SERVICE';
 
 export const login = async (data) => {
   try {
-    const res = await axios.post('/api/login', {
+    const res = await axios.post(`${SERVICE_NAME}/api/auth/login/`, {
       email: data.email,
       password: data.password
     });
@@ -15,37 +15,40 @@ export const login = async (data) => {
 
     return res.data;
   } catch (err) {
-    //console.error('Login API error:', err);
+    console.error('Login API error:', err);
     throw err;
   }
 }
 
 export const register = async (data)=>{
+    try {
 
-    const res = await axios.post('/api/signup',{
-        name: data.name,
+      const res = await axios.post(`${SERVICE_NAME}/api/auth/register/`,{
+        username: data.name,
         email: data.email,
-        password: data.password
-        
-    }).catch((err)=>{ console.log(err); return err;});
-    
-    if (res.status !== 200 && res.status !== 201){
-        return console.log(`Unable to authenticate ${res.status}`);
+        password: data.password,
+        confirm_password: data.confirmPassword
+      }).catch((err)=>{ console.log(err); return err;});
+      
+      if (res.status !== 200 && res.status !== 201){
+        throw new Error(`Unable to authenticate. Status code: ${res.status}`);
+      }
+
+      return res.data;
+    } catch (err) {
+      //console.error('Login API error:', err);
+      throw err;
     }
-
-    const resData = await res.data;
-
-    return resData;
 }
 
 
 export const createAdminUser = async (data)=>{
 
-    const res = await axios.post(`/${SERVICE_NAME}/api/users/create-admin`,{
-        name: data.name,
+    const res = await axios.post(`/${SERVICE_NAME}/api/auth/admins/`,{
+        username: data.name,
         email: data.email,
-        password: data.password
-        
+        password: data.password,
+        confirm_password: data.confirm_password
     }).catch((err)=>console.log(err));
 
 
@@ -61,7 +64,7 @@ export const createAdminUser = async (data)=>{
 
 export const getUsers = async ()=>{
 
-    const res = await axios.get(`/${SERVICE_NAME}/api/users`).catch((err)=> console.log(err));
+    const res = await axios.get(`/${SERVICE_NAME}/api/auth/users/`).catch((err)=> console.log(err));
 
     if(res.status !== 200){
         return console.log("Unable to fetch users");
@@ -77,7 +80,7 @@ export const getUsers = async ()=>{
 
 export const getUserById = async (id)=>{
 
-    const res = await axios.get(`/${SERVICE_NAME}/api/users/${id}`).catch((err)=> console.log(err));
+    const res = await axios.get(`/${SERVICE_NAME}/api/auth/users/${id}/`).catch((err)=> console.log(err));
 
     if(res.status !== 200){
         return console.log("Unable to fetch users");
@@ -95,7 +98,7 @@ export const getLoggedInUser = async ()=>{
 
     let userId = parseInt(localStorage.getItem('iaas-userId'));
 
-    const res = await axios.get(`/${SERVICE_NAME}/api/users/${userId}`).catch((err)=> console.log(err));
+    const res = await axios.get(`/${SERVICE_NAME}/api/auth/users/${userId}`).catch((err)=> console.log(err));
 
     if(res.status !== 200){
         return console.log("Unable to fetch users");
@@ -110,8 +113,8 @@ export const getLoggedInUser = async ()=>{
 
 // User management routes
 export const updateUser = async (userId, data) => {
-  const res = await axios.patch(`/${SERVICE_NAME}/api/users/${userId}`, {
-    name: data.name,
+  const res = await axios.patch(`/${SERVICE_NAME}/api/auth/users/${userId}`, {
+    username: data.name,
     email: data.email,
     role: data.role,
     status: data.status
@@ -126,7 +129,7 @@ export const updateUser = async (userId, data) => {
 };
 
 export const deleteUser = async (userId) => {
-  const res = await axios.delete(`/${SERVICE_NAME}/api/users/${userId}`)
+  const res = await axios.delete(`/${SERVICE_NAME}/api/auth/users/${userId}/`)
     .catch((err) => console.log(err));
 
   if (res.status !== 200) {
@@ -139,35 +142,68 @@ export const deleteUser = async (userId) => {
 
 // USER PROFILE ROUTES
 export const updateProfile = async (data) => {
-  const res = await axios.patch(`/${SERVICE_NAME}/api/users/current/update-profile`, {
-    name: data.name,
-    email: data.email,
-  }).catch((err) => console.log(err));
+  const id = localStorage.getItem("iaas-userId");
+  const token = localStorage.getItem("iaas-token");
+  
+  try {
+    const res = await fetch(`http://localhost:8079/${SERVICE_NAME}/api/auth/users/${id}/`, {
+      method: 'PATCH',
+      headers: {
+      "Content-Type": "application/json",
+      "Authorization": `Bearer ${token}`
+      },
+      body: JSON.stringify({
+      username: data.name,
+      email: data.email,
+      })
+    });
 
-  if (res.status !== 200 && res.status !== 201) {
-    return console.log(`Failed to update your profile. Error code ${res.status}`);
+    console.log("RESPONSE", res);
+    if (!res.ok) {
+      throw new Error(`Failed to update your profile. Error code ${res.status}`);
+    }
+    
+    const responseData = await res.json();
+    return responseData;
+
+    /*console.log("RESPONSE", res);
+    
+    if (res.status !== 200 && res.status !== 201) {
+      console.log(`Failed to update your profile. Error code ${res.status}`);
+      return null;
+    }
+
+    return res.data;*/
+  } catch (err) {
+    console.log('Error updating profile:', err);
+    
+    if (err.response?.status === 401) {
+      console.log('Token may be expired or invalid');
+      // Vous pouvez ici rediriger vers la page de login ou rafraîchir le token
+    }
+    
+    throw err; // Re-lancer l'erreur pour que l'appelant puisse la gérer
   }
-
-  const resData = await res.data;
-  return resData;
 };
 
 export const deleteProfile = async () => {
-  const res = await axios.delete(`/${SERVICE_NAME}/api/users/current/delete-profile`)
-    .catch((err) => console.log(err));
+  const id = localStorage.getItem("iaas-userId");
+  const res = await axios.delete(`/${SERVICE_NAME}/api/auth/users/${id}/`)
+  .catch((err) => console.log(err));
 
   if (res.status !== 200 && res.status !== 201) {
     return console.log(`Failed to delete your profile. Error code ${res.status}`);
   }
-
+  
   const resData = await res.data;
   return resData;
 };
 
 export const changeUserPassword = async (data) => {
-  const res = await axios.patch(`/${SERVICE_NAME}/api/users/current/change-password`, {
+  const id = localStorage.getItem("iaas-userId");
+  const res = await axios.patch(`/${SERVICE_NAME}/api/auth/users/change-password/`, {
     password: data.password,
-    newPassword: data.newPassword
+    new_password: data.newPassword
   })
     .catch((err) => console.log(err));
 
@@ -183,7 +219,7 @@ export const changeUserPassword = async (data) => {
 export const sendResetCode = async (data) => {
   try
   {
-      const res = await axios.post(`/api/send-reset-code`, {
+      const res = await axios.post(`${SERVICE_NAME}/api/auth/users/send-reset-code`, {
         email: data.email
       })
     
@@ -199,7 +235,7 @@ export const sendResetCode = async (data) => {
 };
 
 export const verifyResetCode = async (data) => {
-  const res = await axios.post(`/api/verify-code`, {
+  const res = await axios.post(`${SERVICE_NAME}/api/auth/users/verify-code`, {
     email: data.email,
     code: data.code
   }).catch((err) => console.log(err));
@@ -213,10 +249,10 @@ export const verifyResetCode = async (data) => {
 };
 
 export const resetUserPassword = async (data) => {
-  const res = await axios.post(`/api/reset-password`, {
+  const res = await axios.post(`${SERVICE_NAME}/api/auth/users/reset-password`, {
     email: data.email,
     code: data.code,
-    newPassword: data.newPassword,
+    new_password: data.newPassword,
   }).catch((err) => console.log(err));
 
   if (res.status !== 200) {

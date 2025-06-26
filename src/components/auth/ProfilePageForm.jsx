@@ -60,8 +60,8 @@ const ProfilePage = () => {
       const updatedProfile = await updateProfile(editData);
       console.log("UPDATED PROFILE", updatedProfile);
 
-      const editedName = updatedProfile.data.user.name;
-      const editedEmail = updatedProfile.data.user.email;
+      const editedName = updatedProfile.data.username;
+      const editedEmail = updatedProfile.data.email;
       setUser({ name: editedName, email: editedEmail });
 
       localStorage.setItem('iaas-email', editedEmail);

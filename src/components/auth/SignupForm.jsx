@@ -188,27 +188,27 @@ const SignupForm = () => {
     setFormErrors(errors);
     
     if (Object.keys(errors).length === 0) {
-      setLoading(true);
-      
+        setLoading(true);
 
-
-      try {
-        // Simulate API call
-       
-      register({name: formData.name, email: formData.email, password: formData.password})
-      .then(onResponseReceived)
-      .catch((e)=>console.log(e))
-      .finally(()=>setLoading(false));
-
-      } catch (error) {
-        console.error('Signup error:', error);
-        setFormErrors(prev => ({
-          ...prev,
-          submit: "An error occurred. Please try again."
-        }));
-      } finally {
-        setLoading(false);
-      }
+        try {
+            // Simulate API call
+            await register({
+                name: formData.name,
+                email: formData.email,
+                password: formData.password,
+                confirmPassword: formData.confirmPassword
+            })
+            .then(onResponseReceived)
+            .catch((error) => {
+                console.error('Signup error:', error);
+                setFormErrors(prev => ({
+                    ...prev,
+                    submit: "An error occurred. Please try again."
+                }));
+            });
+        } finally {
+            setLoading(false);
+        }
     }
   };
 

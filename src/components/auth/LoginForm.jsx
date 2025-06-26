@@ -31,6 +31,7 @@ import {login} from '../../api/user-backend';
 import { useNavigate } from 'react-router-dom';
 import { useDispatch } from 'react-redux';
 import { authActions } from '../../store';
+import axios from 'axios';
 
 const LoginForm = () => {
   const theme = useTheme();
@@ -49,22 +50,25 @@ const LoginForm = () => {
   };
 
   const onResponseReceived = (data)=> {
-    console.log(data);
     if(data)
-    localStorage.setItem('iaas-userId',data.user.id);
-    localStorage.setItem('iaas-token',data.token);
-    localStorage.setItem('iaas-email',data.user.email);
-    localStorage.setItem('iaas-username', data.user.name);
+    {
+      localStorage.setItem('iaas-userId',data.data.user.id);
+      localStorage.setItem('iaas-token',data.data.access);
+      localStorage.setItem('iaas-email',data.data.user.email);
+      localStorage.setItem('iaas-username', data.data.user.username);
+  
+      localStorage.setItem('iaas-admin', data.data.user.role === 'ADMIN');
+      
+      setIsAuthenticated(true);
+      
+      axios.defaults.headers.common["Authorization"] = `Bearer ${data.data.access}`
+      dispatch(authActions.login());
+      if(data.user.role === 'ADMIN'){
+  
+        dispatch(authActions.setAdmin());
+      }
+    } else console.log("NO DATAS");
 
-    localStorage.setItem('iaas-admin', data.user.role === 'admin');
-
-    setIsAuthenticated(true);
-
-    dispatch(authActions.login());
-    if(data.user.role === 'admin'){
-
-      dispatch(authActions.setAdmin());
-    }
     
     //navigate('/dashboard');
 
@@ -101,6 +105,7 @@ const LoginForm = () => {
       
       try {
         const response = await login({ email, password });
+        console.log("RESPONSE", response);
         onResponseReceived(response);
       } catch (err) {
         //console.error('Login error:', err);
