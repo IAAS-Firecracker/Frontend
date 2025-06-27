@@ -187,6 +187,22 @@ const Header = () => {
           
           {/* Right Section: Actions & User Menu */}
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+              {
+                !isLoggedIn && (
+              <Button 
+                color="inherit" 
+                href="/login"
+                sx={{ 
+                  borderRadius: 1,
+                  '&:hover': {
+                    backgroundColor: theme.palette.primary.dark,
+                  },
+                  backgroundColor: theme.palette.primary.main,
+                }}
+              >
+                Singin/Singup
+              </Button>
+            )}
             {/* Notifications */}
             <Tooltip title="Notifications">
               <IconButton 
