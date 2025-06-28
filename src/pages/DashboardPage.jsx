@@ -993,7 +993,7 @@ const DashboardPage = () => {
     setVmLoading(true);
     try {
       console.log("VMS");
-      const vmsData = await getVms(); // Updated function call
+      const vmsData = await getVms(currentUser.id); // Updated function call
       console.log("VMS", vmsData);
       if (vmsData && vmsData.data) {
         const filteredVms = (userRole === 'admin' && showAllUsers)
