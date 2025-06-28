@@ -97,10 +97,10 @@ const VmConsole = () => {
         setCurrentUser(userData);
         
         // Fetch VMs
-        const vmsData = await getVms();
-        if (vmsData && vmsData.data) {
+        const vmsData = await getVms(userData.id);
+        if (vmsData) {
           // Filter VMs for current user
-          const userVms = vmsData.data.filter(vm => vm.user_id === userData.id);
+          const userVms = vmsData.filter(vm => vm.user_id === userData.id);
           
           // Filter only running VMs
           const runningVms = userVms.filter(vm => vm.status === 'running');
@@ -151,11 +151,12 @@ const VmConsole = () => {
     try {
       // Fetch VM status to confirm it's running
       const statusResponse = await statusVm({
-        name: selectedVm,
+        vm_id: selectedVmData.id,
         user_id: currentUser.id
       });
+      console.log(statusResponse);
       
-      if (statusResponse && statusResponse.status === 'running') {
+      if (statusResponse && statusResponse.status.status === 'running') {
         // In a real implementation, this would establish a connection to the VM console
         // For now, we'll simulate console output
         
@@ -315,7 +316,7 @@ const VmConsole = () => {
             >
               {vms.map((vm) => (
                 <MenuItem key={vm.name} value={vm.name}>
-                  {vm.name} ({vm.os_type})
+                  {vm.name} ({vm.ip_address}) ({vm.status})
                 </MenuItem>
               ))}
             </Select>

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { 
   Container, 
   Typography, 
@@ -27,6 +27,8 @@ import {
 import CreateVmForm from '../components/VmManagement/CreateVmForm';
 import VmActions from '../components/VmManagement/VmActions';
 import VmConsole from '../components/VmManagement/VmConsole';
+import {getVms} from '../api/vm-host-backend';
+import {getLoggedInUser} from '../api/user-backend';
 
 function TabPanel(props) {
   const { children, value, index, ...other } = props;
@@ -52,18 +54,64 @@ const VmManagementPage = () => {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
   const [tabValue, setTabValue] = useState(0);
+  const [vms, setVms] = useState([]);
+  const [filteredVms, setFilteredVms] = useState([]);
+  const [currentUser, setCurrentUser] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const [vmSummary, setVmSummary] = useState({
+    total: 0,
+    running: 0,
+    stopped: 0,
+    error: 0
+  });
 
   const handleTabChange = (event, newValue) => {
     setTabValue(newValue);
   };
 
-  // VM Status Summary Data
-  const vmSummary = {
-    total: 12,
-    running: 8,
-    stopped: 3,
-    error: 1
-  };
+    // Fetch VMs on component mount
+    useEffect(() => {
+      fetchUserAndVms();
+    }, []);
+
+      // Fetch user and VMs
+      const fetchUserAndVms = async () => {
+        setLoading(true);
+        setError(null);
+        
+        try {
+          // Fetch current user
+          const userData = await getLoggedInUser();
+          if (userData) {
+            setCurrentUser(userData);
+            
+            // Fetch VMs
+            const vmsData = await getVms(userData.id);
+    
+            console.log("VMS", vmsData);
+            if (vmsData) {
+              // Filter VMs for current user
+              setVms(vmsData);
+
+              // Update VM summary
+              const summary = {
+                total: vmsData.length,
+                running: vmsData.filter(vm => vm.status === 'running').length,
+                stopped: vmsData.filter(vm => vm.status === 'stopped').length,
+                error: vmsData.filter(vm => vm.status === 'error').length
+              };
+              setVmSummary(summary);
+            }
+          }
+        } catch (err) {
+          setError('Failed to fetch your virtual machines. Please try again.');
+          console.error(err);
+        } finally {
+          setLoading(false);
+        }
+      };
+      
 
   return (
     <Container maxWidth="lg" sx={{ mt: 3, mb: 6 }}>

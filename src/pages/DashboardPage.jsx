@@ -79,6 +79,7 @@ import { getLoggedInUser } from '../api/user-backend';
 import { getVms, startVm, stopVm, deleteVm } from '../api/vm-host-backend';
 import { useNavigate } from 'react-router-dom';
 
+
 // StatsCard Component
 const StatsCard = ({ title, value, icon, color, secondaryValue, change }) => {
   const theme = useTheme();
@@ -142,9 +143,12 @@ const StatsCard = ({ title, value, icon, color, secondaryValue, change }) => {
 };
 
 // VM Item Component (used within VmList)
-const VmItem = ({ vm, onAction, isAdmin }) => {
+const VmItem = ({ vm, onAction, isAdmin, actionLoading }) => {
+  console.log("VMZAZ", vm);
   const theme = useTheme();
   const [anchorEl, setAnchorEl] = useState(null);
+  
+  
   
   const handleOpenMenu = (event) => {
     setAnchorEl(event.currentTarget);
@@ -207,19 +211,25 @@ const VmItem = ({ vm, onAction, isAdmin }) => {
               <DnsIcon />
             </Avatar>
             <Box>
+            {( actionLoading) && (
+                <Box sx={{ display: 'flex', justifyContent: 'center', py: 1 }}>
+                  <CircularProgress />
+                </Box>
+              )}
               <Typography variant="subtitle1" fontWeight={600}>
                 {vm.name}
               </Typography>
+              
               <Typography variant="body2" color="text.secondary">
                 {vm.os}
               </Typography>
-              {isAdmin && vm.owner && (
+              {/* {isAdmin && vm.owner && (
                 <Chip 
                   size="small" 
                   label={`Owner: ${vm.owner}`} 
                   sx={{ mt: 0.5, height: 20 }}
                 />
-              )}
+              )} */}
             </Box>
           </Stack>
         </Grid>
@@ -239,37 +249,31 @@ const VmItem = ({ vm, onAction, isAdmin }) => {
         
         <Grid item xs={6} sm={3}>
           <Typography variant="body2" color="text.secondary">
-            IP: <Typography component="span" variant="body2" fontWeight={600}>{vm.ip}</Typography>
+            IP: <Typography component="span" variant="body2" fontWeight={600}>{vm.ip_address}</Typography>
           </Typography>
         </Grid>
         
         <Grid item xs={12} sm={2} sx={{ textAlign: 'right' }}>
           <Stack direction="row" spacing={1} justifyContent={{ xs: 'flex-start', sm: 'flex-end' }}>
-            {vm.status === 'running' && (
-              <IconButton size="small" color="warning" onClick={() => onAction(vm.id, 'pause')}>
+            {/* {vm.status === 'running' && (
+              <IconButton disabled={actionLoading} size="small" color="warning" onClick={() => onAction(vm.id, 'pause')}>
                 <PauseIcon fontSize="small" />
               </IconButton>
-            )}
-            
-            {vm.status === 'paused' && (
-              <IconButton size="small" color="success" onClick={() => onAction(vm.id, 'start')}>
-                <PlayIcon fontSize="small" />
-              </IconButton>
-            )}
+            )} */}
             
             {vm.status !== 'stopped' && (
-              <IconButton size="small" color="error" onClick={() => onAction(vm.id, 'stop')}>
+              <IconButton disabled={actionLoading} size="small" color="error" onClick={() => onAction(vm.id, 'stop')}>
                 <StopIcon fontSize="small" />
               </IconButton>
             )}
             
             {vm.status === 'stopped' && (
-              <IconButton size="small" color="success" onClick={() => onAction(vm.id, 'start')}>
+              <IconButton disabled={actionLoading} size="small" color="success" onClick={() => onAction(vm.id, 'start')}>
                 <PlayIcon fontSize="small" />
               </IconButton>
             )}
             
-            <IconButton size="small" onClick={handleOpenMenu}>
+            <IconButton disabled={actionLoading} size="small" onClick={handleOpenMenu}>
               <MoreVertIcon fontSize="small" />
             </IconButton>
             
@@ -334,7 +338,7 @@ const VmItem = ({ vm, onAction, isAdmin }) => {
 };
 
 // VmList Component
-const VmList = ({ vms, onVmAction, onRefresh, onCreateVm, isLoading, isAdmin }) => {
+const VmList = ({ vms, onVmAction, onRefresh, onCreateVm, isLoading, isAdmin, actionLoading }) => {
   const theme = useTheme();
   
   return (
@@ -372,7 +376,7 @@ const VmList = ({ vms, onVmAction, onRefresh, onCreateVm, isLoading, isAdmin }) 
         </Stack>
       </Box>
       
-      {isLoading && (
+      {( isLoading) && (
         <Box sx={{ display: 'flex', justifyContent: 'center', py: 4 }}>
           <CircularProgress />
         </Box>
@@ -387,6 +391,7 @@ const VmList = ({ vms, onVmAction, onRefresh, onCreateVm, isLoading, isAdmin }) 
                 vm={vm} 
                 onAction={onVmAction} 
                 isAdmin={isAdmin} 
+                actionLoading={actionLoading}
               />
             ))
           ) : (
@@ -959,6 +964,13 @@ const DashboardPage = () => {
   const [vms, setVms] = useState([]);
   const [showAllUsers, setShowAllUsers] = useState(false); // For admin to toggle between their VMs and all VMs
   const navigate = useNavigate();
+  const [actionLoading, setActionLoading] = useState(false);
+  const [error, setError] = useState(null);
+  const [success, setSuccess] = useState(null);
+  const [confirmStopOpen, setConfirmStopOpen] = useState(false);
+  const [confirmDeleteOpen, setConfirmDeleteOpen] = useState(false);
+  const [selectedVm, setSelectedVm] = useState(null);
+  
   
   // Fetch user data on component mount
   useEffect(() => {
@@ -995,10 +1007,8 @@ const DashboardPage = () => {
       console.log("VMS");
       const vmsData = await getVms(currentUser.id); // Updated function call
       console.log("VMS", vmsData);
-      if (vmsData && vmsData.data) {
-        const filteredVms = (userRole === 'admin' && showAllUsers)
-          ? vmsData.data
-          : vmsData.data.filter(vm => vm.user_id === currentUser.id);
+      if (vmsData) {
+        const filteredVms = vmsData.filter(vm => vm.user_id === currentUser.id);
         
         // Add owner information for admin view
         if (userRole === 'admin') {
@@ -1108,16 +1118,10 @@ const DashboardPage = () => {
   // User quick actions
   const userQuickActions = [
     { 
-      title: 'Create VM', 
-      description: 'Launch a new virtual machine', 
-      icon: <AddIcon />, 
+      title: 'Manage VMs', 
+      description: 'Manage your virtual machines', 
+      icon: <SettingsIcon />, 
       onClick: () => navigate("/vms")
-    },
-    { 
-      title: 'Add Storage', 
-      description: 'Attach additional disk space', 
-      icon: <StorageIcon />, 
-      onClick: () => console.log('Add Storage') 
     },
     { 
       title: 'Configure Firewalls', 
@@ -1209,26 +1213,113 @@ const DashboardPage = () => {
     },
   ];
   
+
+  // Handle start VM
+  const handleStartVm = async (vm) => {
+    setActionLoading(true);
+    
+    try {
+      const response = await startVm({
+        user_id: vm.user_id,
+        vm_id: vm.id
+      });
+      
+      if (response) {
+        setSuccess(`VM "${vm.name}" is starting up. This might take a moment.`);
+        
+        // Refresh VMs after a short delay
+        setTimeout(() => {
+          fetchVms();
+        }, 3000);
+      }
+    } catch (err) {
+      setError(`Failed to start VM "${vm.name}". Please try again.`);
+      console.error(err);
+    } finally {
+      setActionLoading(false);
+    }
+  };
+  
+  // Handle stop VM
+  const handleStopVm = async (vm) => {
+    if (!vm) return;
+    
+    setActionLoading(true);
+    setConfirmStopOpen(false);
+    
+    try {
+      const response = await stopVm({
+        user_id: vm.user_id,
+        vm_id: vm.id
+      });
+      
+      if (response) {
+        setSuccess(`VM "${vm.name}" is stopping. This might take a moment.`);
+        
+        // Refresh VMs after a short delay
+        setTimeout(() => {
+          fetchVms();
+        }, 3000);
+      }
+    } catch (err) {
+      setError(`Failed to stop VM "${vm.name}". Please try again.`);
+      console.error(err);
+    } finally {
+      setActionLoading(false);
+    }
+  };
+  
+  // Handle delete VM
+  const handleDeleteVm = async (vm) => {
+    if (!vm) return;
+    
+    setActionLoading(true);
+    setConfirmDeleteOpen(false);
+    
+    try {
+      const response = await deleteVm({
+        user_id: `${vm.user_id}`,
+        vm_id: vm.id
+      });
+      
+      if (response) {
+        setSuccess(`VM "${vm.name}" has been deleted.`);
+        
+        // Refresh VMs
+        fetchVms();
+      }
+    } catch (err) {
+      setError(`Failed to delete VM "${vm.name}". Please try again.`);
+      console.error(err);
+    } finally {
+      setActionLoading(false);
+    }
+  };
+
   // Event handlers
   const handleVmAction = (id, action) => {
     console.log(`VM ${id} action: ${action}`);
     
     // Handle actual VM actions
     const targetVm = vms.find(vm => vm.id === id);
+    console.log("TARGET VM", targetVm);
     if (!targetVm) return;
     
     switch (action) {
       case 'start':
         // Call startVm API
         console.log(`Starting VM ${targetVm.name}`);
+        handleStartVm(targetVm);
         break;
       case 'stop':
         // Call stopVm API
         console.log(`Stopping VM ${targetVm.name}`);
+        handleStopVm(targetVm);
         break;
       case 'delete':
         // Call deleteVm API
         console.log(`Deleting VM ${targetVm.name}`);
+        handleDeleteVm(targetVm);
         break;
       default:
         console.log(`Action ${action} for VM ${targetVm.name}`);
@@ -1366,6 +1457,7 @@ const DashboardPage = () => {
             onCreateVm={handleCreateVm}
             isLoading={vmLoading}
             isAdmin={userRole === 'admin'}
+            actionLoading={actionLoading}
           />
         </Grid>
         

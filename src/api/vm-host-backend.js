@@ -151,12 +151,13 @@ export const deleteVm = async (data) => {
 };
 
 export const statusVm = async (data) => {
+  // console.log(data);
   const res = await axios
     .post(
       `/${SERVICE_NAME}/${VM_URI}/vm/status`,
       {
-        name: data.name,
-        user_id: data.user_id,
+        user_id: `${data.user_id}`,
+        vm_id: data.vm_id,
       },
     )
     .catch((err) => console.log(err));
@@ -167,7 +168,7 @@ export const statusVm = async (data) => {
 
   const resData = await res.data;
 
-  return resData;
+  return resData.data.data;
 };
 
 export const getVmMetrics = async (user_id, vm_name) => {
