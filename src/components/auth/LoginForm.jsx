@@ -63,8 +63,9 @@ const LoginForm = () => {
       
       axios.defaults.headers.common["Authorization"] = `Bearer ${data.data.access}`
       dispatch(authActions.login());
+      console.log(data.user);
       if(data.user.role === 'ADMIN'){
-  
+        console.log("Setting Admin");
         dispatch(authActions.setAdmin());
       }
     } else console.log("NO DATAS");

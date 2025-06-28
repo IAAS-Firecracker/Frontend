@@ -28,20 +28,18 @@ import {
   Storage,
   Person
 } from '@mui/icons-material';
-import Sidebar from './Sidebar';
 
 import { authActions } from '../../store';
 import { useDispatch, useSelector } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
 
-const Header = () => {
+const Header = ({ onMenuClick }) => {
   const theme = useTheme();
-  const isMobile = useMediaQuery(theme.breakpoints.down('md'));
+  const isMobile = useMediaQuery(theme.breakpoints.down('lg')); // Changed to lg to match sidebar
 
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const isLoggedIn = useSelector(state => state.isLoggedIn);
-  
   
   // User menu state
   const [userAnchorEl, setUserAnchorEl] = React.useState(null);
@@ -50,9 +48,6 @@ const Header = () => {
   // Notifications menu state  
   const [notificationAnchorEl, setNotificationAnchorEl] = React.useState(null);
   const notificationMenuOpen = Boolean(notificationAnchorEl);
-  
-  // Sidebar state
-  const [openDrawer, setOpenDrawer] = React.useState(false);
 
   const handleUserMenuClick = (event) => {
     setUserAnchorEl(event.currentTarget);
@@ -70,10 +65,6 @@ const Header = () => {
     setNotificationAnchorEl(null);
   };
 
-  const toggleDrawer = (newOpen) => () => {
-    setOpenDrawer(newOpen);
-  };
-
   const handleLogout = () => {
     handleUserMenuClose();
     localStorage.clear();
@@ -88,25 +79,37 @@ const Header = () => {
   const username = localStorage.getItem('iaas-username') || 'Anonymous';
   const email = localStorage.getItem('iaas-email') || false;
 
+  // Calculate sidebar width for header positioning
+  const getSidebarWidth = () => {
+    if (isMobile) return 0; // No sidebar width on mobile (drawer)
+    const isTablet = window.innerWidth < 1536; // xl breakpoint
+    return isTablet ? 240 : 280;
+  };
+
+  const sidebarWidth = getSidebarWidth();
+
   return (
-    <Box sx={{ flexGrow: 1 }}>
-      <AppBar 
-        position="static" 
-        elevation={1} 
-        sx={{
-          bgcolor: theme.palette.primary.main,
-          borderBottom: `1px solid ${theme.palette.divider}`,
-        }}
-      >
-        <Toolbar sx={{ justifyContent: 'space-between' }}>
-          {/* Left Section: Menu Icon & Logo */}
-          <Box sx={{ display: 'flex', alignItems: 'center' }}>
-            {isLoggedIn && ( <IconButton
+    <AppBar 
+      position="fixed" 
+      elevation={1} 
+      sx={{
+        bgcolor: theme.palette.primary.main,
+        borderBottom: `1px solid ${theme.palette.divider}`,
+        width: { xs: '100%', lg: `calc(100% - ${sidebarWidth}px)` },
+        left: { xs: 0, lg: `${sidebarWidth}px` },
+        zIndex: theme.zIndex.drawer + 1,
+      }}
+    >
+      <Toolbar sx={{ justifyContent: 'space-between' }}>
+        {/* Left Section: Menu Icon & Logo */}
+        <Box sx={{ display: 'flex', alignItems: 'center' }}>
+          {isLoggedIn && isMobile && (
+            <IconButton
               size="large"
               edge="start"
               color="inherit"
               aria-label="menu"
-              onClick={toggleDrawer(true)}
+              onClick={onMenuClick}
               sx={{ 
                 mr: 2,
                 '&:hover': {
@@ -115,142 +118,146 @@ const Header = () => {
               }}
             >
               <MenuIcon />
-            </IconButton>)}
-            
-            <Typography 
-              variant="h6" 
-              component="div" 
-              sx={{ 
-                fontWeight: 'bold',
-                letterSpacing: '0.5px',
-                display: 'flex',
-                alignItems: 'center'
-              }}
-            >
-              IAAS-FIRECRACKER
-            </Typography>
-          </Box>
-          
-          {/* Middle Section: Navigation */}
-          {!isMobile && (
-            <Box sx={{ 
-              display: 'flex', 
-              gap: 1, 
-              position: 'absolute', 
-              left: '50%', 
-              transform: 'translateX(-50%)' 
-            }}>
-              <Button 
-                color="inherit" 
-                href="/"
-                sx={{ 
-                  borderRadius: 1,
-                  '&:hover': {
-                    backgroundColor: theme.palette.primary.dark,
-                  }
-                }}
-              >
-                Home
-              </Button>
-              {
-                isLoggedIn && <>
-              <Button 
-                color="inherit" 
-                href="/dashboard"
-                startIcon={<Dashboard />}
-                sx={{ 
-                  borderRadius: 1,
-                  '&:hover': {
-                    backgroundColor: theme.palette.primary.dark,
-                  }
-                }}
-              >
-                Dashboard
-              </Button>
-              <Button 
-                color="inherit" 
-                href="/vms"
-                startIcon={<Storage />}
-                sx={{ 
-                  borderRadius: 1,
-                  '&:hover': {
-                    backgroundColor: theme.palette.primary.dark,
-                  }
-                }}
-              >
-                VMs
-              </Button>
-              </>
-            }
-            </Box>
+            </IconButton>
           )}
           
-          {/* Right Section: Actions & User Menu */}
-          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-              {
-                !isLoggedIn && (
-              <Button 
-                color="inherit" 
-                href="/login"
-                sx={{ 
-                  borderRadius: 1,
-                  '&:hover': {
-                    backgroundColor: theme.palette.primary.dark,
-                  },
-                  backgroundColor: theme.palette.primary.main,
-                }}
-              >
-                Singin/Singup
-              </Button>
+          <Typography 
+            variant="h6" 
+            component="div" 
+            sx={{ 
+              fontWeight: 'bold',
+              letterSpacing: '0.5px',
+              display: 'flex',
+              alignItems: 'center'
+            }}
+          >
+            IAAS-FIRECRACKER
+          </Typography>
+        </Box>
+        
+        {/* Middle Section: Navigation */}
+        {!isMobile && (
+          <Box sx={{ 
+            display: 'flex', 
+            gap: 1, 
+            position: 'absolute', 
+            left: '50%', 
+            transform: 'translateX(-50%)' 
+          }}>
+            <Button 
+              color="inherit" 
+              href="/"
+              sx={{ 
+                borderRadius: 1,
+                '&:hover': {
+                  backgroundColor: theme.palette.primary.dark,
+                }
+              }}
+            >
+              Home
+            </Button>
+            {isLoggedIn && (
+              <>
+                <Button 
+                  color="inherit" 
+                  href="/dashboard"
+                  startIcon={<Dashboard />}
+                  sx={{ 
+                    borderRadius: 1,
+                    '&:hover': {
+                      backgroundColor: theme.palette.primary.dark,
+                    }
+                  }}
+                >
+                  Dashboard
+                </Button>
+                <Button 
+                  color="inherit" 
+                  href="/vms"
+                  startIcon={<Storage />}
+                  sx={{ 
+                    borderRadius: 1,
+                    '&:hover': {
+                      backgroundColor: theme.palette.primary.dark,
+                    }
+                  }}
+                >
+                  VMs
+                </Button>
+              </>
             )}
-            {/* Notifications */}
-            <Tooltip title="Notifications">
-              <IconButton 
-                color="inherit"
-                onClick={handleNotificationClick}
-                sx={{
-                  '&:hover': {
-                    backgroundColor: theme.palette.primary.dark,
-                  }
-                }}
-              >
-                <Badge badgeContent={3} color="error">
-                  <Notifications />
-                </Badge>
-              </IconButton>
-            </Tooltip>
-            
-            {/* User Profile */}
-            <Tooltip title="Account">
-              <IconButton
-                onClick={handleUserMenuClick}
-                size="small"
-                sx={{ 
-                  ml: 1,
-                  border: `2px solid ${theme.palette.primary.contrastText}`,
-                  '&:hover': {
-                    backgroundColor: theme.palette.primary.dark,
-                  }
-                }}
-                aria-controls={userMenuOpen ? 'account-menu' : undefined}
-                aria-haspopup="true"
-                aria-expanded={userMenuOpen ? 'true' : undefined}
-              >
-                <Avatar sx={{ 
-                  width: 32, 
-                  height: 32,
-                  bgcolor: theme.palette.secondary.main,
-                  color: theme.palette.secondary.contrastText,
-                  fontSize: '1rem',
-                  fontWeight: 'bold'
-                }}>
-                  {username.charAt(0).toUpperCase()}
-                </Avatar>
-              </IconButton>
-            </Tooltip>
           </Box>
-        </Toolbar>
-      </AppBar>
+        )}
+        
+        {/* Right Section: Actions & User Menu */}
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+          {!isLoggedIn && (
+            <Button 
+              color="inherit" 
+              href="/login"
+              sx={{ 
+                borderRadius: 1,
+                '&:hover': {
+                  backgroundColor: theme.palette.primary.dark,
+                },
+                backgroundColor: theme.palette.primary.main,
+              }}
+            >
+              Signin/Signup
+            </Button>
+          )}
+          
+          {isLoggedIn && (
+            <>
+              {/* Notifications */}
+              <Tooltip title="Notifications">
+                <IconButton 
+                  color="inherit"
+                  onClick={handleNotificationClick}
+                  sx={{
+                    '&:hover': {
+                      backgroundColor: theme.palette.primary.dark,
+                    }
+                  }}
+                >
+                  <Badge badgeContent={3} color="error">
+                    <Notifications />
+                  </Badge>
+                </IconButton>
+              </Tooltip>
+              
+              {/* User Profile */}
+              <Tooltip title="Account">
+                <IconButton
+                  onClick={handleUserMenuClick}
+                  size="small"
+                  sx={{ 
+                    ml: 1,
+                    border: `2px solid ${theme.palette.primary.contrastText}`,
+                    '&:hover': {
+                      backgroundColor: theme.palette.primary.dark,
+                    }
+                  }}
+                  aria-controls={userMenuOpen ? 'account-menu' : undefined}
+                  aria-haspopup="true"
+                  aria-expanded={userMenuOpen ? 'true' : undefined}
+                >
+                  <Avatar sx={{ 
+                    width: 32, 
+                    height: 32,
+                    bgcolor: theme.palette.secondary.main,
+                    color: theme.palette.secondary.contrastText,
+                    fontSize: '1rem',
+                    fontWeight: 'bold'
+                  }}>
+                    {username.charAt(0).toUpperCase()}
+                  </Avatar>
+                </IconButton>
+              </Tooltip>
+            </>
+          )}
+        </Box>
+      </Toolbar>
       
       {/* Notification Menu */}
       <Menu
@@ -355,40 +362,33 @@ const Header = () => {
           </Box>
         </Box>
         <Divider />
-        { isLoggedIn && (
-        <MenuItem onClick={handleUserProfile} sx={{ gap: 1.5 }}>
-          <ListItemIcon>
-            <Person fontSize="small" />
-          </ListItemIcon>
-          Profile
-        </MenuItem>)}
-
-         {/* { isLoggedIn && (<MenuItem sx={{ gap: 1.5 }}>
-          <ListItemIcon>
-            <AccountCircle fontSize="small" />
-          </ListItemIcon>
-          My account
-        </MenuItem>)} */}
+        {isLoggedIn && (
+          <MenuItem onClick={handleUserProfile} sx={{ gap: 1.5 }}>
+            <ListItemIcon>
+              <Person fontSize="small" />
+            </ListItemIcon>
+            Profile
+          </MenuItem>
+        )}
         <Divider />
-        { isLoggedIn && ( <MenuItem sx={{ gap: 1.5 }}>
-          <ListItemIcon>
-            <Settings fontSize="small" />
-          </ListItemIcon>
-          Settings
-        </MenuItem>)}
-       
-        { isLoggedIn && ( <MenuItem onClick={handleLogout} sx={{ gap: 1.5 }}>
-          <ListItemIcon>
-            <Logout fontSize="small" />
-          </ListItemIcon>
-          Logout
-        </MenuItem>)
-        }
+        {isLoggedIn && (
+          <MenuItem sx={{ gap: 1.5 }}>
+            <ListItemIcon>
+              <Settings fontSize="small" />
+            </ListItemIcon>
+            Settings
+          </MenuItem>
+        )}
+        {isLoggedIn && (
+          <MenuItem onClick={handleLogout} sx={{ gap: 1.5 }}>
+            <ListItemIcon>
+              <Logout fontSize="small" />
+            </ListItemIcon>
+            Logout
+          </MenuItem>
+        )}
       </Menu>
-      
-      {/* Sidebar Component */}
-     {isLoggedIn && <Sidebar open={openDrawer} toggleDrawer={toggleDrawer} />}
-    </Box>
+    </AppBar>
   );
 };
 
