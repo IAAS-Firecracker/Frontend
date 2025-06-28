@@ -22,7 +22,7 @@ const PageLayout = ({ children, fullWidth = false }) => {
  
 
   const sidebarWidth = getSidebarWidth();
-
+  console.log(sidebarWidth);
   return (
     <Box
       sx={{

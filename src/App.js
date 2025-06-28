@@ -65,7 +65,7 @@ function App() {
           overflow: 'hidden' // Prevent horizontal scroll
         }}>
           {/* Fixed Sidebar */}
-          {isLoggedIn && (
+          {isLoggedIn  && (
             <Sidebar 
               open={sidebarOpen} 
               toggleDrawer={toggleDrawer} 

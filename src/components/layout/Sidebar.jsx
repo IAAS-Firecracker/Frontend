@@ -32,7 +32,6 @@ import {
   Help as HelpIcon,
   Menu as MenuIcon
 } from '@mui/icons-material';
-
 import LanIcon from '@mui/icons-material/Lan';
 import Diversity2Icon from '@mui/icons-material/Diversity2';
 import LocalOfferIcon from '@mui/icons-material/LocalOffer';
@@ -61,7 +60,11 @@ function Sidebar({ open, toggleDrawer }) {
     return 280; // Full width on desktop
   };
 
+
   const sidebarWidth = getSidebarWidth();
+  
+  
+  
 
   const mainNavItems = [
     { name: "Home", icon: <HomeIcon />, route: '/' },
