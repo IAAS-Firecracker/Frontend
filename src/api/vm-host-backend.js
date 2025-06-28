@@ -21,14 +21,14 @@ export const getVms = async (id) => {
     //const res = await axios.get(`/${SERVICE_NAME}/${VM_URI}/vms`).catch((err) => console.log(err));
     const res = await axios.get(`/${SERVICE_NAME}/${VM_URI}/user/${id}`).catch((err) => console.log(err));
 
-  if (res.status !== 200) {
+    if (res.status !== 200) {
     return console.log(`Failed to fetch vms error code ${res.status}`);
-  }
+    }
 
-  console.log(res.data.data.data.vms);
-  const resData = await res.data;
+    console.log(res.data.data.data.vms);
+    const resData = await res.data;
 
-  return resData.data.data.vms;
+    return resData.data.data.vms;
 };
 
 export const createVm = async (data) => {
