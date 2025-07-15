@@ -77,7 +77,7 @@ const UserManagementPage = () => {
   // State for search and filters
   const [searchTerm, setSearchTerm] = useState('');
   const [roleFilter, setRoleFilter] = useState('all');
-  const [statusFilter, setStatusFilter] = useState('all');
+  const [statusFilter, setStatusFilter] = useState(true);
   
   // State for dialogs
   const [createDialogOpen, setCreateDialogOpen] = useState(false);
@@ -92,8 +92,8 @@ const UserManagementPage = () => {
     email: '',
     password: '',
     confirmPassword: '',
-    role: 'user',
-    status: 'active'
+    role: 'USER'
+    //status: 'active'
   });
   
   // State for form validation
@@ -285,8 +285,8 @@ const UserManagementPage = () => {
         name: formData.name,
         email: formData.email,
         password: formData.password,
-        role: formData.role,
-        status: formData.status
+        role: formData.role
+        //status: formData.status
       });
       
       if (response) {
@@ -300,7 +300,7 @@ const UserManagementPage = () => {
         showSnackbar(`${isAdmin ? 'Administrator' : 'User'} created successfully!`, 'success');
       }
     } catch (err) {
-      showSnackbar(`Failed to create ${formData.role === 'admin' ? 'administrator' : 'user'}. Please try again.`, 'error');
+      showSnackbar(`Failed to create ${formData.role === 'ADMIN' ? 'administrator' : 'USER'}. Please try again.`, 'error');
       console.error(err);
     } finally {
       setLoading(false);
@@ -326,8 +326,8 @@ const UserManagementPage = () => {
       const response = await updateUser(userId, {
         name: formData.name,
         email: formData.email,
-        role: formData.role,
-        status: formData.status
+        role: formData.role
+        //status: formData.status
       });
       
       if (response) {
@@ -446,12 +446,12 @@ const UserManagementPage = () => {
   
   // Apply filters to users
   const filteredUsers = users.filter(user => {
-    const matchesSearch = user.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    const matchesSearch = user.username.toLowerCase().includes(searchTerm.toLowerCase()) ||
                           user.email.toLowerCase().includes(searchTerm.toLowerCase());
     
     const matchesRole = roleFilter === 'all' || user.role === roleFilter;
     
-    const matchesStatus = statusFilter === 'all' || user.status === statusFilter;
+    const matchesStatus = statusFilter === true || user.is_active === statusFilter;
     
     return matchesSearch && matchesRole && matchesStatus;
   });
@@ -511,13 +511,13 @@ const UserManagementPage = () => {
               >
                 Filters
               </Button>
-              {(roleFilter !== 'all' || statusFilter !== 'all') && (
+              {(roleFilter !== 'all' || statusFilter !== true) && (
                 <Button 
                   variant="outlined" 
                   color="secondary"
                   onClick={() => {
                     setRoleFilter('all');
-                    setStatusFilter('all');
+                    setStatusFilter(true);
                   }}
                 >
                   Clear Filters
@@ -549,7 +549,7 @@ const UserManagementPage = () => {
         <MenuItem 
           selected={roleFilter === 'admin'}
           onClick={() => {
-            setRoleFilter('admin');
+            setRoleFilter('ADMIN');
             handleFilterMenuClose();
           }}
         >
@@ -558,7 +558,7 @@ const UserManagementPage = () => {
         <MenuItem 
           selected={roleFilter === 'user'}
           onClick={() => {
-            setRoleFilter('user');
+            setRoleFilter('USER');
             handleFilterMenuClose();
           }}
         >
@@ -580,7 +580,7 @@ const UserManagementPage = () => {
         <MenuItem 
           selected={statusFilter === 'active'}
           onClick={() => {
-            setStatusFilter('active');
+            setStatusFilter(true);
             handleFilterMenuClose();
           }}
         >
@@ -589,7 +589,7 @@ const UserManagementPage = () => {
         <MenuItem 
           selected={statusFilter === 'inactive'}
           onClick={() => {
-            setStatusFilter('inactive');
+            setStatusFilter(false);
             handleFilterMenuClose();
           }}
         >
@@ -612,7 +612,6 @@ const UserManagementPage = () => {
         <Table>
           <TableHead>
             <TableRow>
-              <TableCell>ID</TableCell>
               <TableCell>Name</TableCell>
               <TableCell>Email</TableCell>
               <TableCell>Role</TableCell>
@@ -624,8 +623,7 @@ const UserManagementPage = () => {
             {filteredUsers.length > 0 ? (
               filteredUsers.map((user) => (
                 <TableRow key={user.id}>
-                  <TableCell>{user.id}</TableCell>
-                  <TableCell>{user.name}</TableCell>
+                  <TableCell>{user.username}</TableCell>
                   <TableCell>{user.email}</TableCell>
                   <TableCell>
                     <Box 
@@ -648,11 +646,12 @@ const UserManagementPage = () => {
                         px: 1,
                         py: 0.5,
                         borderRadius: 1,
-                        bgcolor: user.status === 'active' ? 'success.light' : 'error.light',
-                        color: user.status === 'active' ? 'success.dark' : 'error.dark'
+                        bgcolor: user.is_active === true ? 'success.light' : 'error.light',
+                        color: user.is_active === true ? 'success.dark' : 'error.dark'
                       }}
                     >
-                      {user.status}
+                      {console.log(user.is_active)}
+                      {user.is_active ? 'ACTIVE' : 'DISABLE'}
                     </Box>
                   </TableCell>
                   <TableCell align="right">

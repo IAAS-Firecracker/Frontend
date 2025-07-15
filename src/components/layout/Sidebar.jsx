@@ -47,8 +47,9 @@ function Sidebar({ open, toggleDrawer }) {
   const isMobile = useMediaQuery(theme.breakpoints.down('lg')); // < 1200px
   const isTablet = useMediaQuery(theme.breakpoints.between('lg', 'xl')); // 1200px - 1536px
   
-  const isAdmin = useSelector((state) => state.isAdmin);
-
+  // const isAdmin = useSelector((state) => state.isAdmin);
+  const isAdmin = localStorage.getItem('iaas-admin');
+  console.log("Admin User : ",isAdmin);
   const handleAdminToggle = () => {
     setAdminExpanded(!adminExpanded);
   };

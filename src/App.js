@@ -28,7 +28,7 @@ import ResetPasswordPage from './pages/ResetPasswordPage';
 function App() {
   const dispatch = useDispatch();
   const isLoggedIn = useSelector(state => state.isLoggedIn);
-  const isAdmin = useSelector(state => state.isAdmin);
+  const isAdmin = localStorage.getItem('iaas-admin');
   
   // Sidebar state
   const [sidebarOpen, setSidebarOpen] = React.useState(false);
